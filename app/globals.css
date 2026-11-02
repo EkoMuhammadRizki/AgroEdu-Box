@@ -1,0 +1,225 @@
+@import "sweetalert2/dist/sweetalert2.min.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Variables per peran ─────────────────────────────────── */
+[data-role="siswa"] {
+  --accent: #166A43;
+  --accent-hover: #0F5434;
+  --accent-soft: #E5F2E9;
+  --accent-text: #166A43;
+}
+
+[data-role="guru"] {
+  --accent: #1F55B8;
+  --accent-hover: #184493;
+  --accent-soft: #E6EEFF;
+  --accent-text: #1F55B8;
+}
+
+/* ── Base styles ─────────────────────────────────────────────── */
+@layer base {
+  html {
+    @apply antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body {
+    @apply bg-bg text-ink font-sans;
+  }
+
+  * {
+    @apply box-border;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Focus visible hanya untuk keyboard */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent, #166A43);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* ── Utility classes ─────────────────────────────────────────── */
+@layer utilities {
+  .text-accent { color: var(--accent); }
+  .bg-accent { background-color: var(--accent); }
+  .bg-accent-soft { background-color: var(--accent-soft); }
+  .border-accent { border-color: var(--accent); }
+  .hover\:bg-accent-hover:hover { background-color: var(--accent-hover); }
+  .ring-accent { --tw-ring-color: var(--accent); }
+
+  /* Tabular numbers untuk sensor */
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+
+  /* Scrollbar tipis */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #DCE5DF transparent;
+  }
+
+  /* Animasi titik online */
+  .dot-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Card hover lift */
+  .card-hover {
+    @apply transition-all duration-150 ease-out;
+  }
+  .card-hover:hover {
+    @apply shadow-md -translate-y-0.5;
+  }
+}
+
+/* ── Component layer ─────────────────────────────────────────── */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 h-11 px-5 rounded-ctl
+           bg-[var(--accent)] text-white font-semibold text-sm
+           hover:bg-[var(--accent-hover)] active:scale-[0.98]
+           transition-all duration-150 ease-out
+           focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent)];
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 h-11 px-5 rounded-ctl
+           bg-surface border border-line text-ink font-semibold text-sm
+           hover:bg-surface-muted active:scale-[0.98]
+           transition-all duration-150 ease-out;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 h-10 px-4 rounded-ctl
+           bg-transparent text-ink-muted font-medium text-sm
+           hover:bg-accent-soft hover:text-[var(--accent)]
+           transition-all duration-150 ease-out;
+  }
+
+  .input-field {
+    @apply h-11 w-full rounded-ctl border border-line bg-surface px-3 text-sm text-ink
+           placeholder:text-ink-muted
+           focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)]
+           transition-all duration-150;
+  }
+
+  .card {
+    @apply bg-surface rounded-card border border-line p-4 md:p-5;
+  }
+
+  .panel-header {
+    @apply px-4 py-2 rounded-t-card bg-accent-soft text-[var(--accent)] 
+           text-xs font-bold tracking-widest uppercase;
+  }
+}
+
+/* ── SweetAlert2 Custom Styling ──────────────────────────────── */
+.swal2-container .swal2-popup {
+  border-radius: 1.25rem !important;
+  padding: 1.5rem !important;
+  font-family: inherit !important;
+}
+
+.swal2-container .swal2-title {
+  color: #17352A !important;
+  font-size: 1.125rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.swal2-container .swal2-html-container {
+  color: #5F7068 !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.5 !important;
+}
+
+.swal2-container .swal2-actions {
+  display: flex !important;
+  gap: 0.625rem !important;
+  margin-top: 1.25rem !important;
+}
+
+.swal-btn-danger {
+  background-color: #E11D48 !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  font-size: 0.8125rem !important;
+  padding: 0.625rem 1.25rem !important;
+  border-radius: 0.75rem !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.15s ease-out !important;
+}
+
+.swal-btn-danger:hover {
+  background-color: #BE123C !important;
+}
+
+.swal-btn-siswa {
+  background-color: #166A43 !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  font-size: 0.8125rem !important;
+  padding: 0.625rem 1.25rem !important;
+  border-radius: 0.75rem !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.15s ease-out !important;
+}
+
+.swal-btn-siswa:hover {
+  background-color: #0F5434 !important;
+}
+
+.swal-btn-guru {
+  background-color: #1F55B8 !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  font-size: 0.8125rem !important;
+  padding: 0.625rem 1.25rem !important;
+  border-radius: 0.75rem !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.15s ease-out !important;
+}
+
+.swal-btn-guru:hover {
+  background-color: #184493 !important;
+}
+
+.swal-btn-cancel {
+  background-color: #FFFFFF !important;
+  color: #17352A !important;
+  font-weight: 600 !important;
+  font-size: 0.8125rem !important;
+  padding: 0.625rem 1.25rem !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid #DCE5DF !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.15s ease-out !important;
+}
+
+.swal-btn-cancel:hover {
+  background-color: #F7FAF8 !important;
+}
+
