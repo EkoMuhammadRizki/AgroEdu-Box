@@ -72,50 +72,50 @@ export default function MateriDetailPage() {
 
         {/* ── BIOSKOP AGRO & CEK IOT (DESIGN 2.md Section 5.8) ──────────────── */}
         <div className="card-cream space-y-4">
-          <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-2 flex items-center justify-between bg-blue-200/50 border-blue-200 text-blue-500">
-            <span className="flex items-center gap-2">
-              <Play className="w-4 h-4 fill-blue-500 text-blue-500" />
-              BIOSKOP AGRO: SIMULASI MEKANISME SENSOR & AIR
+          <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-2 flex items-center justify-between bg-blue-200/50 border-blue-200 text-blue-500">
+            <span className="flex items-center gap-1.5 sm:gap-2 truncate">
+              <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-blue-500 text-blue-500 flex-shrink-0" />
+              BIOSKOP AGRO: SIMULASI SENSOR & AIR
             </span>
-            <span className="text-[10px] font-bold text-blue-500">
-              Sensor A0 Live Interactive
+            <span className="text-[9px] sm:text-[10px] font-bold text-blue-500 flex-shrink-0">
+              Sensor A0 Live
             </span>
           </div>
 
           {/* TV / Tablet Dark Frame Screen */}
-          <div className="relative rounded-[28px] bg-ink-900 border-4 border-brown-600 p-4 md:p-6 shadow-2xl text-white overflow-hidden min-h-[260px] flex flex-col justify-between">
+          <div className="relative rounded-[24px] sm:rounded-[28px] bg-ink-900 border-4 border-brown-600 p-3.5 sm:p-6 shadow-2xl text-white overflow-hidden min-h-[240px] flex flex-col justify-between">
             {/* Corner Live Overlay */}
-            <div className="flex items-center justify-between gap-2 z-10">
-              <div className="flex items-center gap-2 px-3 py-1 rounded-pill bg-black/60 border border-white/20 backdrop-blur-md text-xs font-mono">
-                <span className={`w-2.5 h-2.5 rounded-full ${moistureLevel > 40 ? "bg-green-400" : "bg-red-400"} dot-pulse`} />
+            <div className="flex flex-wrap items-center justify-between gap-2 z-10">
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-pill bg-black/60 border border-white/20 backdrop-blur-md text-[11px] sm:text-xs font-mono">
+                <span className={`w-2.5 h-2.5 rounded-full ${moistureLevel > 40 ? "bg-green-400" : "bg-red-400"} dot-pulse flex-shrink-0`} />
                 <span>Sensor A0: <strong>{moistureLevel}%</strong></span>
-                <span className="text-white/60">({moistureLevel < 35 ? "Kering" : moistureLevel > 80 ? "Basah" : "Lembap Optimal"})</span>
+                <span className="text-white/60 hidden sm:inline">({moistureLevel < 35 ? "Kering" : moistureLevel > 80 ? "Basah" : "Lembap Optimal"})</span>
               </div>
 
-              <div className="px-3 py-1 rounded-pill bg-yellow-500 text-ink-900 text-[10px] font-heading font-extrabold">
+              <div className="px-2.5 py-0.5 rounded-pill bg-yellow-500 text-ink-900 text-[10px] font-heading font-extrabold flex-shrink-0">
                 Mode Simulasi
               </div>
             </div>
 
             {/* Screen Content: Animated Tank & Soil Mechanism */}
-            <div className="py-6 my-auto text-center z-10 space-y-3">
-              <div className="flex justify-center items-center gap-6">
-                {/* Sprout Icon */}
-                <div className={`transition-all transform ${moistureLevel > 40 ? "scale-110" : "scale-90"}`}>
+            <div className="py-4 sm:py-6 my-auto text-center z-10 space-y-3">
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+                {/* Sprout Mascot */}
+                <div className={`transition-all transform ${moistureLevel > 40 ? "scale-105" : "scale-95"}`}>
                   <BibooMascot
                     mood={moistureLevel > 40 ? "happy" : "thinking"}
-                    size="lg"
+                    size="md"
                     bubbleText={moistureLevel > 40 ? "Wah segar sekali!" : "Aduh aku haus..."}
                     animated={true}
                   />
                 </div>
 
                 {/* Soil Animation Box */}
-                <div className="w-40 p-3 rounded-2xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-left text-xs space-y-2">
+                <div className="w-full max-w-[200px] p-3 rounded-2xl border-2 border-white/20 bg-white/10 backdrop-blur-sm text-left text-xs space-y-2">
                   <p className="font-heading font-bold text-white text-[11px] flex items-center gap-1">
                     <Droplets className="w-3.5 h-3.5 text-blue-400" /> Profil Media Tanam
                   </p>
-                  <div className="h-4 w-full bg-black/40 rounded-full overflow-hidden p-0.5 border border-white/20">
+                  <div className="h-3.5 w-full bg-black/40 rounded-full overflow-hidden p-0.5 border border-white/20">
                     <div
                       className={`h-full rounded-full transition-all duration-700 ${
                         moistureLevel > 40 ? "bg-gradient-to-r from-blue-400 to-green-400" : "bg-orange-500"
@@ -131,14 +131,14 @@ export default function MateriDetailPage() {
             </div>
 
             {/* Bottom Screen CTA */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-white/10 z-10">
-              <span className="text-xs text-white/80 font-medium">
-                Coba tekan tombol untuk menguji perubahan resistansi sensor tanah:
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2 border-t border-white/10 z-10">
+              <span className="text-[11px] sm:text-xs text-white/80 font-medium text-center sm:text-left">
+                Tekan tombol untuk menguji respon sensor tanah:
               </span>
               <button
                 type="button"
                 onClick={handleSimulateWatering}
-                className="btn-info text-xs h-9 px-5 gap-1.5 shadow-btn-blue inline-flex items-center cursor-pointer"
+                className="btn-info text-xs h-9 px-4 sm:px-5 gap-1.5 shadow-btn-blue inline-flex items-center cursor-pointer w-full sm:w-auto justify-center"
               >
                 <Droplets className="w-3.5 h-3.5" />
                 Pahami! Coba Misi Siram!
@@ -149,7 +149,7 @@ export default function MateriDetailPage() {
 
         {/* ── DIAGRAM PERBANDINGAN 3 KOLOM (DESIGN 2.md Section 5.7) ─────────────── */}
         <div className="card space-y-4">
-          <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-2">
+          <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-2">
             DIAGRAM PERBANDINGAN KONDISI MEDIA TANAM
           </div>
           <p className="text-xs text-ink-600">
@@ -226,7 +226,7 @@ export default function MateriDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Tujuan Pembelajaran */}
           <div className="card space-y-3">
-            <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-2">
+            <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-2">
               TUJUAN PEMBELAJARAN
             </div>
             <ul className="space-y-2.5">
@@ -243,7 +243,7 @@ export default function MateriDetailPage() {
 
           {/* Materi Inti */}
           <div className="card space-y-3">
-            <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-2">
+            <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-2">
               RINGKASAN TEORI
             </div>
             <div className="text-xs md:text-sm text-ink-600 leading-relaxed space-y-2">
@@ -257,7 +257,7 @@ export default function MateriDetailPage() {
 
         {/* ── PERTANYAAN PEMANTIK ────────────────────────────────────────────── */}
         <div className="card space-y-3">
-          <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-2">
+          <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-2">
             PERTANYAAN REFLEKSI & PENELITIAN
           </div>
           <div className="space-y-3">

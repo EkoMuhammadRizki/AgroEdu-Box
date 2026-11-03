@@ -133,11 +133,11 @@ export default function SensorDetailPage() {
         </div>
 
         {/* Ringkasan Nilai & Statistik */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          <div className="card text-center p-4">
-            <p className="text-[10px] font-heading font-extrabold uppercase tracking-wider text-ink-600">Nilai Saat Ini</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+          <div className="card text-center p-3 sm:p-4">
+            <p className="text-[9px] sm:text-[10px] font-heading font-extrabold uppercase tracking-wider text-ink-600 truncate">Nilai Saat Ini</p>
             <div className="mt-1 flex items-baseline justify-center gap-1">
-              <span className="text-3xl font-heading font-extrabold tabular-nums text-green-700">
+              <span className="text-2xl sm:text-3xl font-heading font-extrabold tabular-nums text-green-700">
                 {currentSensor?.value ?? "-"}
               </span>
               <span className="text-xs font-bold text-ink-600">{meta.unit}</span>
@@ -147,31 +147,31 @@ export default function SensorDetailPage() {
             </div>
           </div>
 
-          <div className="card text-center p-4">
-            <p className="text-[10px] font-heading font-extrabold uppercase tracking-wider text-ink-600">Rata-Rata ({selectedRange})</p>
+          <div className="card text-center p-3 sm:p-4">
+            <p className="text-[9px] sm:text-[10px] font-heading font-extrabold uppercase tracking-wider text-ink-600 truncate">Rata-Rata ({selectedRange})</p>
             <div className="mt-1 flex items-baseline justify-center gap-1">
-              <span className="text-3xl font-heading font-extrabold tabular-nums text-ink-900">{avgVal}</span>
+              <span className="text-2xl sm:text-3xl font-heading font-extrabold tabular-nums text-ink-900">{avgVal}</span>
               <span className="text-xs font-bold text-ink-600">{meta.unit}</span>
             </div>
-            <p className="text-[10px] text-ink-600 mt-2">Dihitung dari data valid</p>
+            <p className="text-[9px] sm:text-[10px] text-ink-600 mt-2 truncate">Dari data valid</p>
           </div>
 
-          <div className="card text-center p-4">
-            <p className="text-[10px] font-heading font-extrabold uppercase tracking-wider text-ink-600">Minimum</p>
+          <div className="card text-center p-3 sm:p-4">
+            <p className="text-[9px] sm:text-[10px] font-heading font-extrabold uppercase tracking-wider text-ink-600 truncate">Minimum</p>
             <div className="mt-1 flex items-baseline justify-center gap-1">
-              <span className="text-3xl font-heading font-extrabold tabular-nums text-blue-500">{minVal}</span>
+              <span className="text-2xl sm:text-3xl font-heading font-extrabold tabular-nums text-blue-500">{minVal}</span>
               <span className="text-xs font-bold text-ink-600">{meta.unit}</span>
             </div>
-            <p className="text-[10px] text-ink-600 mt-2">Nilai terendah terekam</p>
+            <p className="text-[9px] sm:text-[10px] text-ink-600 mt-2 truncate">Nilai terendah</p>
           </div>
 
-          <div className="card text-center p-4">
-            <p className="text-[10px] font-heading font-extrabold uppercase tracking-wider text-ink-600">Maksimum</p>
+          <div className="card text-center p-3 sm:p-4">
+            <p className="text-[9px] sm:text-[10px] font-heading font-extrabold uppercase tracking-wider text-ink-600 truncate">Maksimum</p>
             <div className="mt-1 flex items-baseline justify-center gap-1">
-              <span className="text-3xl font-heading font-extrabold tabular-nums text-orange-500">{maxVal}</span>
+              <span className="text-2xl sm:text-3xl font-heading font-extrabold tabular-nums text-orange-500">{maxVal}</span>
               <span className="text-xs font-bold text-ink-600">{meta.unit}</span>
             </div>
-            <p className="text-[10px] text-ink-600 mt-2">Nilai tertinggi terekam</p>
+            <p className="text-[9px] sm:text-[10px] text-ink-600 mt-2 truncate">Nilai tertinggi</p>
           </div>
         </div>
 
@@ -234,7 +234,7 @@ export default function SensorDetailPage() {
 
         {/* Tabel Log Telemetri */}
         <div className="card space-y-3">
-          <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-2 flex items-center justify-between">
+          <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-2 flex items-center justify-between">
             <span>LOG PEMBACAAN TELEMETRI TERBARU</span>
             <span className="text-[10px] font-bold text-green-700">{historyPoints.length} titik data</span>
           </div>

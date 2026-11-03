@@ -30,19 +30,19 @@ export default function KuisListPage() {
 
       <ContentWrapper className="space-y-6 pb-8">
         {/* ── PORTAL KUIS GERBANG HERO (DESIGN 2.md Section 5.12) ────────── */}
-        <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-r from-[#FFE27A] via-[#EAF6D9] to-[#BFE6F7] border-3 border-white p-6 md:p-8 shadow-card flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center md:text-left z-10">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-brown-600 text-xs font-heading font-extrabold shadow-xs">
-              <Trophy className="w-4 h-4 text-yellow-500 fill-yellow-400" /> Siap Uji Pengetahuan?
+        <div className="relative overflow-hidden rounded-[24px] sm:rounded-[32px] bg-gradient-to-r from-[#FFE27A] via-[#EAF6D9] to-[#BFE6F7] border-3 border-white p-4 sm:p-8 shadow-card flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
+          <div className="space-y-1.5 sm:space-y-2 text-center md:text-left z-10">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-white text-brown-600 text-[11px] sm:text-xs font-heading font-extrabold shadow-xs">
+              <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 fill-yellow-400" /> Siap Uji Pengetahuan?
             </span>
-            <h2 className="font-heading font-extrabold text-2xl md:text-3xl text-ink-900 leading-tight">
+            <h2 className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-ink-900 leading-tight">
               Gerbang Tantangan Petani Muda IoT! 🌟
             </h2>
-            <p className="text-xs md:text-sm text-ink-600 max-w-md">
+            <p className="text-xs sm:text-sm text-ink-600 max-w-md">
               Jawab soal pilihan ganda interaktif, raih skor 100%, klaim bintang berharga, dan dapatkan <strong>Sertifikat Resmi Petani Muda</strong>!
             </p>
             <div className="pt-2">
-              <Link href="/kuis/quiz-1" className="btn-secondary text-xs h-10 px-6 gap-2 inline-flex items-center shadow-btn-yellow">
+              <Link href="/kuis/quiz-1" className="btn-secondary text-xs h-10 px-5 sm:px-6 gap-2 inline-flex items-center shadow-btn-yellow">
                 Mulai Kuis Utama Sekarang!
                 <ArrowRight className="w-4 h-4" />
               </Link>
@@ -52,7 +52,7 @@ export default function KuisListPage() {
           <div className="relative z-10 flex-shrink-0">
             <BibooMascot
               mood="trophy"
-              size="xl"
+              size="lg"
               character={character}
               bubbleText="Ayo buktikan kemampuanmu!"
               animated={true}

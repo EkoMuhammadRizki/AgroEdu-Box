@@ -2,7 +2,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Sidebar, BottomNav } from "./nav";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
-import { Star, LogOut, Radio } from "lucide-react";
+import { Star, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { showConfirmDialog, showSuccessAlert } from "@/lib/swal";
 
@@ -57,24 +57,24 @@ export function AppShell({ role, children }: AppShellProps) {
   };
 
   return (
-    <div data-role={role} className="min-h-dvh bg-[#F3F9EC] text-ink-900 font-body">
+    <div data-role={role} className="min-h-dvh bg-[#F3F9EC] text-ink-900 font-body overflow-x-hidden">
       <Sidebar role={role} />
 
       {/* Top Header Mobile */}
-      <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between border-b-2 border-green-200 bg-white/95 backdrop-blur-md px-4 py-2.5 shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-green-100 border border-green-300 flex items-center justify-center p-0.5">
+      <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between border-b-2 border-green-200 bg-white/95 backdrop-blur-md px-3.5 py-2 sm:px-4 sm:py-2.5 shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-green-100 border border-green-300 flex items-center justify-center p-0.5 flex-shrink-0">
             {role === "siswa" ? (
               <BibooMascot mood="happy" size="sm" character={character} animated={false} />
             ) : (
-              <span className="text-lg">🌿</span>
+              <span className="text-base">🌿</span>
             )}
           </div>
           <div>
             <span className="font-heading font-extrabold text-sm text-ink-900 tracking-tight leading-none block">
               Agro-Edu BiBoo
             </span>
-            <span className="text-[10px] text-ink-600 font-bold">
+            <span className="text-[9px] text-ink-600 font-bold block mt-0.5">
               {role === "siswa" ? "Area Siswa" : "AGRO EDU TRACK"}
             </span>
           </div>
@@ -99,9 +99,9 @@ export function AppShell({ role, children }: AppShellProps) {
         </div>
       </header>
 
-      {/* Main content — offset for sidebar on lg */}
+      {/* Main content — offset for sidebar on lg, offset for bottom nav on mobile */}
       <main className="lg:pl-60">
-        <div className="min-h-dvh pb-24 lg:pb-10">
+        <div className="min-h-dvh pb-[calc(max(env(safe-area-inset-bottom,0px),16px)+64px)] lg:pb-10">
           {children}
         </div>
       </main>
@@ -120,16 +120,16 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, action, badge }: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-4 px-4 pt-6 pb-3 md:px-8 md:pt-8">
+    <div className="flex items-start justify-between gap-3 px-3.5 pt-4 pb-2 sm:px-8 sm:pt-8">
       <div className="space-y-1 min-w-0">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <h1 className="font-heading font-extrabold text-2xl md:text-3xl text-ink-900 leading-tight">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h1 className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-ink-900 leading-tight">
             {title}
           </h1>
           {badge}
         </div>
         {description && (
-          <p className="text-xs md:text-sm text-ink-600 font-medium">{description}</p>
+          <p className="text-[11px] sm:text-xs md:text-sm text-ink-600 font-medium">{description}</p>
         )}
       </div>
       {action && (
@@ -141,7 +141,7 @@ export function PageHeader({ title, description, action, badge }: PageHeaderProp
 
 export function ContentWrapper({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`px-4 md:px-8 max-w-6xl mx-auto ${className}`}>
+    <div className={`px-3.5 sm:px-8 max-w-6xl mx-auto ${className}`}>
       {children}
     </div>
   );

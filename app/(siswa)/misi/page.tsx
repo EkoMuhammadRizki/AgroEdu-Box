@@ -31,22 +31,22 @@ export default function MisiPage() {
 
       <ContentWrapper className="space-y-6 pb-8">
         {/* Banner with BiBoo */}
-        <div className="card-green flex flex-col md:flex-row items-center justify-between gap-5 p-6">
-          <div className="space-y-2 text-center md:text-left">
-            <span className="px-3 py-1 rounded-pill bg-white text-green-700 text-xs font-heading font-extrabold shadow-xs inline-flex items-center gap-1.5">
-              <ClipboardCheck className="w-4 h-4 text-green-600" /> Tantangan Belajar Aktif
+        <div className="card-green flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-5 p-4 sm:p-6">
+          <div className="space-y-1.5 sm:space-y-2 text-center md:text-left">
+            <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-pill bg-white text-green-700 text-[11px] sm:text-xs font-heading font-extrabold shadow-xs inline-flex items-center gap-1.5">
+              <ClipboardCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" /> Tantangan Belajar Aktif
             </span>
-            <h2 className="font-heading font-extrabold text-xl md:text-2xl text-ink-900 leading-tight">
+            <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-ink-900 leading-tight">
               Kumpulkan Bukti Ilmiah Tanamanmu! 🌿
             </h2>
-            <p className="text-xs md:text-sm text-ink-600 max-w-md leading-relaxed">
+            <p className="text-xs sm:text-sm text-ink-600 max-w-md leading-relaxed">
               Setiap misi melatihmu berpikir seperti ilmuwan: mengamati langsung kondisi daun dan media, mencatat data sensor fisik, lalu merumuskan kesimpulan logis.
             </p>
           </div>
           <div className="flex-shrink-0">
             <BibooMascot
               mood="watering"
-              size="lg"
+              size="md"
               character={character}
               animated={true}
             />
@@ -54,18 +54,18 @@ export default function MisiPage() {
         </div>
 
         {/* Summary Stats Row */}
-        <div className="grid grid-cols-3 gap-3 md:gap-4">
-          <div className="card text-center p-4">
-            <p className="font-heading font-extrabold text-2xl md:text-3xl text-green-600 tabular-nums">{mockMissions.length}</p>
-            <p className="text-xs font-heading font-bold text-ink-600 mt-1">Total Misi</p>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="card text-center p-2.5 sm:p-4">
+            <p className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-green-600 tabular-nums">{mockMissions.length}</p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-1 truncate">Total Misi</p>
           </div>
-          <div className="card text-center p-4">
-            <p className="font-heading font-extrabold text-2xl md:text-3xl text-blue-500 tabular-nums">{mockSubmissions.length}</p>
-            <p className="text-xs font-heading font-bold text-ink-600 mt-1">Misi Terkirim</p>
+          <div className="card text-center p-2.5 sm:p-4">
+            <p className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-blue-500 tabular-nums">{mockSubmissions.length}</p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-1 truncate">Misi Terkirim</p>
           </div>
-          <div className="card text-center p-4">
-            <p className="font-heading font-extrabold text-2xl md:text-3xl text-yellow-500 tabular-nums">40 ⭐</p>
-            <p className="text-xs font-heading font-bold text-ink-600 mt-1">Bintang Diraih</p>
+          <div className="card text-center p-2.5 sm:p-4">
+            <p className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-yellow-500 tabular-nums">40 ⭐</p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-1 truncate">Bintang Diraih</p>
           </div>
         </div>
 

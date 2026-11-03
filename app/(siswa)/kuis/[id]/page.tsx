@@ -129,23 +129,23 @@ export default function KuisPage() {
 
         <ContentWrapper className="pb-10 space-y-6">
           {/* Trophy & Celebration Hero */}
-          <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-b from-[#FFFBEA] via-[#EAF6D9] to-[#CDEBB0] border-4 border-white p-6 md:p-8 shadow-card text-center space-y-4">
-            <Butterfly className="absolute top-6 left-12 animate-bounce" />
-            <Ladybug className="absolute bottom-6 right-16" />
+          <div className="relative overflow-hidden rounded-[24px] sm:rounded-[36px] bg-gradient-to-b from-[#FFFBEA] via-[#EAF6D9] to-[#CDEBB0] border-4 border-white p-4 sm:p-8 shadow-card text-center space-y-3 sm:space-y-4">
+            <Butterfly className="absolute top-4 left-4 sm:top-6 sm:left-12 animate-bounce" />
+            <Ladybug className="absolute bottom-4 right-4 sm:bottom-6 sm:right-16" />
 
             {/* Glowing Golden Trophy */}
-            <div className="relative inline-block mx-auto mt-2">
+            <div className="relative inline-block mx-auto mt-1 sm:mt-2">
               <div className="absolute inset-0 bg-yellow-300 rounded-full blur-xl opacity-60 animate-pulse" />
-              <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-600 border-4 border-white shadow-card flex items-center justify-center">
-                <Trophy className="w-12 h-12 md:w-14 md:h-14 text-white fill-white drop-shadow-md" />
+              <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-600 border-4 border-white shadow-card flex items-center justify-center">
+                <Trophy className="w-10 h-10 sm:w-14 sm:h-14 text-white fill-white drop-shadow-md" />
               </div>
             </div>
 
             <div className="space-y-1">
-              <h2 className="font-heading font-extrabold text-2xl md:text-3xl text-ink-900 leading-tight">
+              <h2 className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-ink-900 leading-tight">
                 Selamat, <span className="text-green-600">{studentName}!</span>
               </h2>
-              <p className="font-heading font-bold text-base md:text-lg text-brown-600">
+              <p className="font-heading font-bold text-sm sm:text-base md:text-lg text-brown-600">
                 Pencapaian: Petani Muda IoT · Skor {score}%
               </p>
               <p className="text-xs text-ink-600 font-medium">
@@ -156,30 +156,30 @@ export default function KuisPage() {
             {/* Mascot reaction */}
             <BibooMascot
               mood="trophy"
-              size="lg"
+              size="md"
               character={character}
               bubbleText={score >= 80 ? "Hebat banget! Kamu calon ahli IoT!" : "Keren! Yuk belajar lagi biar makin jago!"}
-              className="mx-auto my-2"
+              className="mx-auto my-1 sm:my-2"
             />
 
             {/* ── 3 TOMBOL BERTUMPUK DARI DESIGN 2.md (Section 5.11) ────────── */}
-            <div className="max-w-md mx-auto space-y-3 pt-2">
+            <div className="max-w-md mx-auto space-y-2.5 sm:space-y-3 pt-2">
               {/* 1. Klaim Sertifikat (Hijau) */}
               <button
                 type="button"
                 onClick={() => setShowCertificateModal(true)}
-                className="btn-primary w-full text-base h-13 gap-2 inline-flex items-center justify-center cursor-pointer"
+                className="btn-primary w-full text-xs sm:text-base h-11 sm:h-13 gap-2 inline-flex items-center justify-center cursor-pointer"
               >
-                <Award className="w-5 h-5" />
+                <Award className="w-4 h-4 sm:w-5 sm:h-5" />
                 Klaim Sertifikat Digital!
               </button>
 
               {/* 2. Tantangan Berikutnya (Kuning) */}
               <Link
                 href="/misi"
-                className="btn-secondary w-full text-base h-13 gap-2 inline-flex items-center justify-center cursor-pointer"
+                className="btn-secondary w-full text-xs sm:text-base h-11 sm:h-13 gap-2 inline-flex items-center justify-center cursor-pointer"
               >
-                <Sparkles className="w-5 h-5 text-brown-600" />
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-brown-600" />
                 Tantangan Berikutnya: Kerjakan Misi
               </Link>
 
@@ -187,17 +187,17 @@ export default function KuisPage() {
               <button
                 type="button"
                 onClick={() => setShowClassroomMode(true)}
-                className="btn-info w-full text-base h-13 gap-2 inline-flex items-center justify-center cursor-pointer"
+                className="btn-info w-full text-xs sm:text-base h-11 sm:h-13 gap-2 inline-flex items-center justify-center cursor-pointer"
               >
-                <Maximize2 className="w-5 h-5" />
-                Tampilkan di Kelas! (Mode Layar Penuh)
+                <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                Tampilkan di Kelas! (Layar Penuh)
               </button>
             </div>
           </div>
 
           {/* ── Pembahasan Rinci Per Soal ─────────────────────────────────── */}
           <div className="card space-y-4">
-            <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-2">
+            <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-2">
               PEMBAHASAN JAWABAN KUIS
             </div>
             <div className="space-y-3">
@@ -440,7 +440,7 @@ export default function KuisPage() {
         </div>
 
         {/* ── PILIHAN JAWABAN (DESIGN 2.md Section 5.10) ────────────────── */}
-        <div className="space-y-3">
+        <div className="space-y-2.5 sm:space-y-3">
           {question.options.map((option, idx) => {
             const isSelected = answers[question.id] === idx;
             const letter = String.fromCharCode(65 + idx);
@@ -451,7 +451,7 @@ export default function KuisPage() {
                 key={idx}
                 type="button"
                 onClick={() => handleAnswer(idx)}
-                className={`w-full text-left p-4 rounded-2xl border-3 flex items-center gap-3.5 transition-all cursor-pointer ${
+                className={`w-full text-left p-3 sm:p-4 rounded-2xl border-3 flex items-center gap-2.5 sm:gap-3.5 transition-all cursor-pointer ${
                   isSelected
                     ? "border-green-500 bg-green-100/70 shadow-card scale-[1.01]"
                     : "border-white bg-white hover:bg-green-50 hover:border-green-200 shadow-sm"
@@ -459,18 +459,18 @@ export default function KuisPage() {
               >
                 {/* Colored circle letter from DESIGN 2.md */}
                 <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center font-heading font-extrabold text-sm flex-shrink-0 ${letterStyle}`}
+                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-heading font-extrabold text-xs sm:text-sm flex-shrink-0 ${letterStyle}`}
                 >
                   {letter}
                 </div>
 
-                <span className={`text-sm md:text-base font-body font-bold flex-1 ${isSelected ? "text-green-900" : "text-ink-900"}`}>
+                <span className={`text-xs sm:text-base font-body font-bold flex-1 leading-snug ${isSelected ? "text-green-900" : "text-ink-900"}`}>
                   {option}
                 </span>
 
                 {isSelected && (
-                  <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0">
-                    <Check className="w-4 h-4 stroke-[3]" />
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0">
+                    <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
                   </div>
                 )}
               </button>

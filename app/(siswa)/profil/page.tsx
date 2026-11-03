@@ -85,16 +85,16 @@ export default function ProfilPage() {
 
       <ContentWrapper className="space-y-6 pb-10">
         {/* Profile Card Hero */}
-        <div className="card-cream flex flex-col md:flex-row items-center justify-between gap-6 p-6">
-          <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+        <div className="card-cream flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6 p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 text-center sm:text-left">
             <div className="relative">
-              <div className="w-24 h-24 rounded-3xl bg-white border-3 border-green-300 p-2 shadow-card flex items-center justify-center">
-                <BibooMascot mood="happy" size="lg" character={character} animated={true} />
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-white border-3 border-green-300 p-2 shadow-card flex items-center justify-center">
+                <BibooMascot mood="happy" size="md" character={character} animated={true} />
               </div>
               <button
                 type="button"
                 onClick={handleToggleCharacter}
-                className="absolute -bottom-2 -right-2 p-1.5 rounded-full bg-yellow-400 text-ink-900 border-2 border-white shadow-xs hover:scale-110 transition-transform cursor-pointer"
+                className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 p-1.5 rounded-full bg-yellow-400 text-ink-900 border-2 border-white shadow-xs hover:scale-110 transition-transform cursor-pointer"
                 title="Ganti karakter BiBoo"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -103,67 +103,67 @@ export default function ProfilPage() {
 
             <div className="space-y-1">
               <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <h2 className="font-heading font-extrabold text-2xl text-ink-900">{studentName}</h2>
-                <span className="px-2.5 py-0.5 rounded-full bg-green-500 text-white text-[10px] font-heading font-extrabold">
+                <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-ink-900">{studentName}</h2>
+                <span className="px-2 py-0.5 rounded-full bg-green-500 text-white text-[9px] sm:text-[10px] font-heading font-extrabold">
                   {character === "girl" ? "BiBoo Girl" : "BiBoo Ori"}
                 </span>
               </div>
               <p className="text-xs text-ink-600 font-bold">{className} (NIS: 2026-001)</p>
-              <div className="flex items-center gap-2 pt-1 justify-center sm:justify-start">
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-pill bg-white border border-green-300 text-xs font-bold text-green-700">
+              <div className="flex items-center gap-2 pt-0.5 justify-center sm:justify-start">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-pill bg-white border border-green-300 text-[11px] sm:text-xs font-bold text-green-700">
                   🌱 {statusMessage}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <div className="p-3.5 rounded-2xl bg-white border-2 border-yellow-300 shadow-xs text-center min-w-[90px]">
-              <Star className="w-6 h-6 text-yellow-500 fill-yellow-400 mx-auto mb-1" />
-              <p className="font-heading font-extrabold text-xl text-ink-900 leading-tight">{stars}</p>
-              <p className="text-[10px] font-bold text-ink-600">Bintang</p>
+          <div className="flex gap-2.5 sm:gap-3">
+            <div className="p-2.5 sm:p-3.5 rounded-2xl bg-white border-2 border-yellow-300 shadow-xs text-center min-w-[76px] sm:min-w-[90px]">
+              <Star className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 fill-yellow-400 mx-auto mb-0.5 sm:mb-1" />
+              <p className="font-heading font-extrabold text-lg sm:text-xl text-ink-900 leading-tight">{stars}</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-ink-600">Bintang</p>
             </div>
-            <div className="p-3.5 rounded-2xl bg-white border-2 border-yellow-300 shadow-xs text-center min-w-[90px]">
-              <Trophy className="w-6 h-6 text-yellow-500 fill-yellow-400 mx-auto mb-1" />
-              <p className="font-heading font-extrabold text-xl text-ink-900 leading-tight">1</p>
-              <p className="text-[10px] font-bold text-ink-600">Piala IoT</p>
+            <div className="p-2.5 sm:p-3.5 rounded-2xl bg-white border-2 border-yellow-300 shadow-xs text-center min-w-[76px] sm:min-w-[90px]">
+              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 fill-yellow-400 mx-auto mb-0.5 sm:mb-1" />
+              <p className="font-heading font-extrabold text-lg sm:text-xl text-ink-900 leading-tight">1</p>
+              <p className="text-[9px] sm:text-[10px] font-bold text-ink-600">Piala IoT</p>
             </div>
           </div>
         </div>
 
         {/* 3 Clickable Stats Row */}
-        <div className="grid grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <Link
             href="/materi"
-            className="card text-center p-4 hover:border-green-400 transition-all block group"
+            className="card text-center p-2.5 sm:p-4 hover:border-green-400 transition-all block group"
           >
-            <BookOpen className="h-6 w-6 text-green-600 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-            <p className="font-heading font-extrabold text-2xl text-ink-900 tabular-nums">2 / {mockModules.length}</p>
-            <p className="text-xs font-heading font-bold text-ink-600 mt-1 group-hover:text-green-600">Modul Selesai →</p>
+            <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <p className="font-heading font-extrabold text-lg sm:text-2xl text-ink-900 tabular-nums">2 / {mockModules.length}</p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-0.5 truncate group-hover:text-green-600">Modul Selesai →</p>
           </Link>
 
           <Link
             href="/misi"
-            className="card text-center p-4 hover:border-green-400 transition-all block group"
+            className="card text-center p-2.5 sm:p-4 hover:border-green-400 transition-all block group"
           >
-            <ClipboardCheck className="h-6 w-6 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-            <p className="font-heading font-extrabold text-2xl text-ink-900 tabular-nums">{mockSubmissions.length}</p>
-            <p className="text-xs font-heading font-bold text-ink-600 mt-1 group-hover:text-blue-500">Misi Terkirim →</p>
+            <ClipboardCheck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <p className="font-heading font-extrabold text-lg sm:text-2xl text-ink-900 tabular-nums">{mockSubmissions.length}</p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-0.5 truncate group-hover:text-blue-500">Misi Terkirim →</p>
           </Link>
 
           <Link
             href="/kuis"
-            className="card text-center p-4 hover:border-green-400 transition-all block group"
+            className="card text-center p-2.5 sm:p-4 hover:border-green-400 transition-all block group"
           >
-            <Award className="h-6 w-6 text-yellow-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-            <p className="font-heading font-extrabold text-2xl text-ink-900 tabular-nums">80%</p>
-            <p className="text-xs font-heading font-bold text-ink-600 mt-1 group-hover:text-yellow-600">Rata-Rata Kuis →</p>
+            <Award className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <p className="font-heading font-extrabold text-lg sm:text-2xl text-ink-900 tabular-nums">80%</p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-0.5 truncate group-hover:text-yellow-600">Rata-Rata Kuis →</p>
           </Link>
         </div>
 
         {/* Umpan Balik Guru & Pesan Balasan */}
         <div className="card space-y-4">
-          <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-1">
+          <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-1">
             BIMBINGAN & UMPAN BALIK GURU
           </div>
 
@@ -209,7 +209,7 @@ export default function ProfilPage() {
 
         {/* Riwayat Aktivitas Belajar */}
         <div className="card space-y-3">
-          <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-1">
+          <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-1">
             LOG AKTIVITAS BELAJAR SISWA
           </div>
           <ActivityList activities={mockActivities} />

@@ -239,7 +239,7 @@ export default function LabIotPage() {
 
             {/* ── Catatan Pengamatan Siswa ─────────────────────────────────── */}
             <div className="card space-y-4">
-              <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-1 flex items-center justify-between">
+              <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-2 flex items-center justify-between">
                 <span>CATATAN PENGAMATAN LAPANGAN</span>
                 <span className="text-[10px] font-bold text-green-700">Terintegrasi Kartu Misi</span>
               </div>

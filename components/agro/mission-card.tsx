@@ -21,8 +21,8 @@ function formatDeadline(iso?: string): string {
 export function MissionCard({ mission, href, compact = false }: MissionCardProps) {
   if (compact) {
     return (
-      <Link href={href} className="card card-hover block group p-5 bg-white border-3 border-white">
-        <div className="flex items-start justify-between gap-3">
+      <Link href={href} className="card card-hover block group p-3.5 sm:p-5 bg-white border-3 border-white">
+        <div className="flex items-start justify-between gap-2.5 sm:gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2 h-2 rounded-full bg-green-500" />

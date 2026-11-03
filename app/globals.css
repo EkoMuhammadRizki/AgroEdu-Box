@@ -72,10 +72,13 @@
   html {
     @apply antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     @apply bg-bg text-ink font-body;
+    overflow-x: hidden;
   }
 
   * {
@@ -125,7 +128,7 @@
   /* BiBoo gentle floating */
   @keyframes biboo-float {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-7px) rotate(1deg); }
+    50% { transform: translateY(-6px) rotate(1deg); }
   }
 
   .animate-biboo {
@@ -149,15 +152,23 @@
   .card-hover:hover {
     @apply -translate-y-1 shadow-card-hover;
   }
+
+  /* iOS safe area utilities */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+  }
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top, 0px), 12px);
+  }
 }
 
 /* ── Component layer ─────────────────────────────────────────── */
 @layer components {
   /* 3D pressable buttons (Section 5.1) */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 h-12 px-6 rounded-pill
-           text-white font-heading font-bold text-sm md:text-base
-           transition-all duration-150 ease-out
+    @apply inline-flex items-center justify-center gap-2 h-11 sm:h-12 px-5 sm:px-6 rounded-pill
+           text-white font-heading font-bold text-xs sm:text-base select-none
+           transition-all duration-150 ease-out cursor-pointer
            focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[var(--blue-500)];
     background-image: var(--grad-btn-green);
     box-shadow: var(--shadow-btn);
@@ -171,9 +182,9 @@
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 h-12 px-6 rounded-pill
-           text-ink font-heading font-bold text-sm md:text-base
-           transition-all duration-150 ease-out
+    @apply inline-flex items-center justify-center gap-2 h-11 sm:h-12 px-5 sm:px-6 rounded-pill
+           text-ink font-heading font-bold text-xs sm:text-base select-none
+           transition-all duration-150 ease-out cursor-pointer
            focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[var(--blue-500)];
     background-image: var(--grad-btn-yellow);
     box-shadow: var(--shadow-btn-yellow);
@@ -187,9 +198,9 @@
   }
 
   .btn-info {
-    @apply inline-flex items-center justify-center gap-2 h-12 px-6 rounded-pill
-           text-white font-heading font-bold text-sm md:text-base
-           transition-all duration-150 ease-out
+    @apply inline-flex items-center justify-center gap-2 h-11 sm:h-12 px-5 sm:px-6 rounded-pill
+           text-white font-heading font-bold text-xs sm:text-base select-none
+           transition-all duration-150 ease-out cursor-pointer
            focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[var(--blue-500)];
     background-image: var(--grad-btn-blue);
     box-shadow: var(--shadow-btn-blue);
@@ -203,14 +214,14 @@
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 h-10 px-4 rounded-pill
-           bg-white/80 border-2 border-green-200 text-green-600 font-heading font-bold text-sm
-           hover:bg-green-100 hover:border-green-400
+    @apply inline-flex items-center justify-center gap-1.5 h-9 sm:h-10 px-3.5 sm:px-4 rounded-pill
+           bg-white/90 border-2 border-green-200 text-green-700 font-heading font-bold text-xs sm:text-sm
+           hover:bg-green-100 hover:border-green-400 cursor-pointer
            transition-all duration-150 ease-out;
   }
 
   .input-field {
-    @apply h-12 w-full rounded-sm border-2 border-green-200 bg-white px-4 text-sm text-ink
+    @apply h-11 sm:h-12 w-full rounded-sm border-2 border-green-200 bg-white px-3.5 sm:px-4 text-xs sm:text-sm text-ink
            placeholder:text-ink-300 font-body
            focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-400/25
            transition-all duration-150;
@@ -218,27 +229,28 @@
 
   /* Bubble Card with 3px white border and soft green shadow */
   .card {
-    @apply bg-surface rounded-card border-[3px] border-white p-5 md:p-6 shadow-card;
+    @apply bg-surface rounded-[24px] sm:rounded-card border-[3px] border-white p-4 sm:p-6 shadow-card;
   }
 
   .card-cream {
-    @apply bg-cream-50 rounded-card border-[3px] border-white p-5 md:p-6 shadow-card;
+    @apply bg-cream-50 rounded-[24px] sm:rounded-card border-[3px] border-white p-4 sm:p-6 shadow-card;
   }
 
   .card-green {
-    @apply bg-green-100 rounded-card border-[3px] border-white p-5 md:p-6 shadow-card;
+    @apply bg-green-100 rounded-[24px] sm:rounded-card border-[3px] border-white p-4 sm:p-6 shadow-card;
   }
 
   .panel-header {
-    @apply px-4 py-2.5 rounded-t-[24px] bg-green-100 text-green-700
-           text-xs font-heading font-bold tracking-wider uppercase border-b border-green-200/60;
+    @apply px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-t-[20px] sm:rounded-t-[24px] bg-green-100 text-green-700
+           text-[10px] sm:text-xs font-heading font-bold tracking-wider uppercase border-b border-green-200/60;
   }
 }
 
 /* ── SweetAlert2 Custom Theming (BiBoo Style) ────────────────── */
 .swal2-container .swal2-popup {
   border-radius: var(--radius-lg) !important;
-  padding: 1.75rem !important;
+  padding: 1.5rem !important;
+  max-width: 90vw !important;
   font-family: var(--font-body), sans-serif !important;
   border: 3px solid #FFFFFF !important;
   box-shadow: var(--shadow-card) !important;
@@ -248,21 +260,21 @@
 .swal2-container .swal2-title {
   color: #2F3B1F !important;
   font-family: var(--font-heading), sans-serif !important;
-  font-size: 1.35rem !important;
+  font-size: 1.25rem !important;
   font-weight: 800 !important;
   margin-bottom: 0.5rem !important;
 }
 
 .swal2-container .swal2-html-container {
   color: #5B6B45 !important;
-  font-size: 0.875rem !important;
-  line-height: 1.55 !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.5 !important;
 }
 
 .swal2-container .swal2-actions {
   display: flex !important;
-  gap: 0.75rem !important;
-  margin-top: 1.5rem !important;
+  gap: 0.5rem !important;
+  margin-top: 1.25rem !important;
 }
 
 .swal-btn-danger {
@@ -270,8 +282,8 @@
   color: #FFFFFF !important;
   font-family: var(--font-heading), sans-serif !important;
   font-weight: 700 !important;
-  font-size: 0.875rem !important;
-  padding: 0.7rem 1.5rem !important;
+  font-size: 0.8125rem !important;
+  padding: 0.6rem 1.25rem !important;
   border-radius: 999px !important;
   border: none !important;
   cursor: pointer !important;
@@ -288,8 +300,8 @@
   color: #FFFFFF !important;
   font-family: var(--font-heading), sans-serif !important;
   font-weight: 700 !important;
-  font-size: 0.875rem !important;
-  padding: 0.7rem 1.6rem !important;
+  font-size: 0.8125rem !important;
+  padding: 0.6rem 1.4rem !important;
   border-radius: 999px !important;
   border: none !important;
   cursor: pointer !important;
@@ -306,8 +318,8 @@
   color: #FFFFFF !important;
   font-family: var(--font-heading), sans-serif !important;
   font-weight: 700 !important;
-  font-size: 0.875rem !important;
-  padding: 0.7rem 1.6rem !important;
+  font-size: 0.8125rem !important;
+  padding: 0.6rem 1.4rem !important;
   border-radius: 999px !important;
   border: none !important;
   cursor: pointer !important;
@@ -320,8 +332,8 @@
   color: #5B6B45 !important;
   font-family: var(--font-heading), sans-serif !important;
   font-weight: 700 !important;
-  font-size: 0.875rem !important;
-  padding: 0.7rem 1.4rem !important;
+  font-size: 0.8125rem !important;
+  padding: 0.6rem 1.2rem !important;
   border-radius: 999px !important;
   border: 2px solid #CDEBB0 !important;
   cursor: pointer !important;

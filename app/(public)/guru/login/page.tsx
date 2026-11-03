@@ -49,7 +49,7 @@ export default function GuruLoginPage() {
         </div>
 
         <div className="card-cream space-y-4 shadow-card">
-          <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-2 bg-blue-200/60 border-blue-300 text-blue-500">
+          <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-2 bg-blue-200/60 border-blue-300 text-blue-500">
             MASUK SEBAGAI GURU PEMBIMBING
           </div>
 

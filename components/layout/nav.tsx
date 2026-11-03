@@ -4,31 +4,31 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Home, BookOpen, Cpu, ClipboardCheck, HelpCircle, User,
   LayoutDashboard, Users, Database, BookMarked, ClipboardList, BarChart3, Settings,
-  LogOut, Star, Radio
+  LogOut, Star
 } from "lucide-react";
 import { showConfirmDialog, showSuccessAlert } from "@/lib/swal";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
 import { useEffect, useState } from "react";
 
-type NavItem = { href: string; label: string; icon: React.ElementType };
+type NavItem = { href: string; label: string; shortLabel: string; icon: React.ElementType };
 
 const SISWA_NAV: NavItem[] = [
-  { href: "/beranda", label: "Beranda", icon: Home },
-  { href: "/materi", label: "Materi Lab", icon: BookOpen },
-  { href: "/lab-iot", label: "Lab IoT", icon: Cpu },
-  { href: "/misi", label: "Kartu Misi", icon: ClipboardCheck },
-  { href: "/kuis", label: "Kuis Pintar", icon: HelpCircle },
-  { href: "/profil", label: "Profil & Piala", icon: User },
+  { href: "/beranda", label: "Beranda", shortLabel: "Beranda", icon: Home },
+  { href: "/materi", label: "Materi Lab", shortLabel: "Materi", icon: BookOpen },
+  { href: "/lab-iot", label: "Lab IoT", shortLabel: "Lab IoT", icon: Cpu },
+  { href: "/misi", label: "Kartu Misi", shortLabel: "Misi", icon: ClipboardCheck },
+  { href: "/kuis", label: "Kuis Pintar", shortLabel: "Kuis", icon: HelpCircle },
+  { href: "/profil", label: "Profil & Piala", shortLabel: "Profil", icon: User },
 ];
 
 const GURU_NAV: NavItem[] = [
-  { href: "/guru/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/guru/kelas", label: "Kelola Kelas", icon: Users },
-  { href: "/guru/iot", label: "Data & Sensor", icon: Database },
-  { href: "/guru/materi", label: "Materi Modul", icon: BookMarked },
-  { href: "/guru/tugas", label: "Tugas & Misi", icon: ClipboardList },
-  { href: "/guru/laporan", label: "Laporan & Nilai", icon: BarChart3 },
-  { href: "/guru/pengaturan", label: "Pengaturan IoT", icon: Settings },
+  { href: "/guru/dashboard", label: "Dashboard", shortLabel: "Dash", icon: LayoutDashboard },
+  { href: "/guru/kelas", label: "Kelola Kelas", shortLabel: "Kelas", icon: Users },
+  { href: "/guru/iot", label: "Data & Sensor", shortLabel: "IoT", icon: Database },
+  { href: "/guru/materi", label: "Materi Modul", shortLabel: "Materi", icon: BookMarked },
+  { href: "/guru/tugas", label: "Tugas & Misi", shortLabel: "Tugas", icon: ClipboardList },
+  { href: "/guru/laporan", label: "Laporan & Nilai", shortLabel: "Laporan", icon: BarChart3 },
+  { href: "/guru/pengaturan", label: "Pengaturan IoT", shortLabel: "Setting", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -206,29 +206,29 @@ export function BottomNav({ role }: BottomNavProps) {
   const navItems = role === "siswa" ? SISWA_NAV : GURU_NAV.slice(0, 5);
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t-2 border-green-200 px-2 py-1 shadow-[0_-4px_16px_rgba(63,155,46,0.08)]">
-      <div className="flex items-center justify-around">
-        {navItems.map(({ href, label, icon: Icon }) => {
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t-2 border-green-200 px-1 pt-1.5 pb-[max(env(safe-area-inset-bottom,0px),8px)] shadow-[0_-4px_16px_rgba(63,155,46,0.08)]">
+      <div className="flex items-center justify-around max-w-md mx-auto">
+        {navItems.map(({ href, shortLabel, icon: Icon }) => {
           const isActive = pathname === href || (href !== "/beranda" && href !== "/guru/dashboard" && pathname.startsWith(href));
           return (
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center justify-center gap-1 py-1.5 px-2 rounded-2xl min-w-[56px] transition-all ${
+              className={`flex flex-col items-center justify-center gap-0.5 py-1 px-1.5 rounded-2xl flex-1 transition-all ${
                 isActive
                   ? "text-green-600 scale-105"
-                  : "text-ink-600 hover:text-ink-900 opacity-80"
+                  : "text-ink-600 hover:text-ink-900 opacity-75"
               }`}
             >
               <div
-                className={`p-1.5 rounded-full ${
+                className={`p-1 rounded-full transition-colors ${
                   isActive ? "bg-green-100 text-green-700 shadow-xs" : ""
                 }`}
               >
-                <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
+                <Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={isActive ? 2.5 : 2} />
               </div>
-              <span className="font-heading font-bold text-[10px] leading-none">
-                {label.split(" ")[0]}
+              <span className="font-heading font-bold text-[9px] sm:text-[10px] leading-tight truncate">
+                {shortLabel}
               </span>
             </Link>
           );

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 
@@ -24,6 +24,14 @@ export const metadata: Metadata = {
   description: "Platform pembelajaran agrikultur & IoT ceria untuk anak dan remaja bersama BiBoo.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#BFE6F7",
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -31,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className={`${baloo.variable} ${nunito.variable}`}>
-      <body className="min-h-dvh bg-[#F3F9EC] text-[#2F3B1F] font-body antialiased selection:bg-[#CDEBB0] selection:text-[#2F3B1F]">
+      <body className="min-h-dvh bg-[#F3F9EC] text-[#2F3B1F] font-body antialiased selection:bg-[#CDEBB0] selection:text-[#2F3B1F] overflow-x-hidden">
         {children}
       </body>
     </html>
