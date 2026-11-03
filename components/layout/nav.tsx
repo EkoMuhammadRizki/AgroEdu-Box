@@ -114,7 +114,7 @@ export function Sidebar({ role }: SidebarProps) {
         </div>
         <div>
           <p className="font-heading font-extrabold text-base text-ink-900 tracking-tight leading-tight group-hover:text-green-600 transition-colors">
-            Agro-Edu BiBoo
+            Agro-Edu Box
           </p>
           <p className="text-[10px] font-bold text-ink-600 uppercase tracking-wider">
             {role === "siswa" ? "Area Petani Muda" : "AGRO EDU TRACK"}

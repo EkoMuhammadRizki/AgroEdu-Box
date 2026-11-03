@@ -86,7 +86,7 @@ export default function OnboardingPage() {
           </div>
           <div className="min-w-0">
             <span className="font-heading font-extrabold text-base sm:text-lg text-ink-900 tracking-tight block leading-tight truncate">
-              Agro-Edu BiBoo
+              Agro-Edu Box
             </span>
             <span className="text-[9px] sm:text-[10px] font-bold text-ink-600 uppercase tracking-wider hidden sm:block">
               Smart IoT Agriculture
@@ -121,7 +121,7 @@ export default function OnboardingPage() {
 
               <div className="space-y-1.5">
                 <h1 className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-ink-900 leading-snug">
-                  Selamat Datang di <span className="text-green-600">Agro-Edu BiBoo!</span>
+                  Selamat Datang di <span className="text-green-600">Agro-Edu Box!</span>
                 </h1>
                 <p className="text-xs sm:text-sm text-ink-600 leading-relaxed max-w-xs mx-auto">
                   Eksplorasi seru pertanian pintar, pantau sensor tanaman secara langsung, selesaikan misi, dan raih bintang!

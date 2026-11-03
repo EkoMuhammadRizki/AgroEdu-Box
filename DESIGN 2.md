@@ -1,4 +1,4 @@
-# DESIGN.md — Agro-Edu BiBoo (Agro Edu Box)
+# DESIGN.md — Agro-Edu Box
 
 Panduan desain untuk merevisi tampilan web agar sesuai dengan referensi UI (alur Opening → Input Nama → Profil Karakter → Dashboard → Kuis → Hasil & Sertifikat).
 Stack: **Next.js**. Token di bawah ditulis sebagai CSS variables (bisa langsung dipakai di `globals.css`) dan dipetakan ke Tailwind jika project memakainya.
@@ -110,7 +110,7 @@ const nunito = Nunito({ subsets: ["latin"], weight: ["400","600","700"], variabl
 
 | Level | Ukuran (mobile / desktop) | Weight | Contoh |
 |---|---|---|---|
-| Display | 28 / 40 px | 800 | "Selamat Datang di Agro-Edu BiBoo!" |
+| Display | 28 / 40 px | 800 | "Selamat Datang di Agro-Edu Box!" |
 | H1 | 24 / 32 px | 700 | "Pilih Karaktermu!" |
 | H2 | 20 / 24 px | 700 | "Kuis Agro-Pintar" |
 | H3 | 16 / 18 px | 700 | Judul panel (Live IoT Sensor Status) |

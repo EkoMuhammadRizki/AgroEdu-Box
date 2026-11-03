@@ -18,8 +18,8 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: {
-    default: "Agro-Edu BiBoo | AGRO EDU BOX",
-    template: "%s | Agro-Edu BiBoo",
+    default: "Agro-Edu Box",
+    template: "%s | Agro-Edu Box",
   },
   description: "Platform pembelajaran agrikultur & IoT ceria untuk anak dan remaja bersama BiBoo.",
 };

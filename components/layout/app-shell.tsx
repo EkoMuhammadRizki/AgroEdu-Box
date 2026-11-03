@@ -72,7 +72,7 @@ export function AppShell({ role, children }: AppShellProps) {
           </div>
           <div>
             <span className="font-heading font-extrabold text-sm text-ink-900 tracking-tight leading-none block">
-              Agro-Edu BiBoo
+              Agro-Edu Box
             </span>
             <span className="text-[9px] text-ink-600 font-bold block mt-0.5">
               {role === "siswa" ? "Area Siswa" : "AGRO EDU TRACK"}

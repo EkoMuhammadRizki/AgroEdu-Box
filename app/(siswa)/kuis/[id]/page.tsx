@@ -304,7 +304,7 @@ export default function KuisPage() {
                     <p className="text-ink-600">Tanggal Terbit:</p>
                     <p className="font-bold text-ink-900">{new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
                     <div className="mt-4 pt-1 border-t border-ink-300 font-heading font-bold text-ink-900">
-                      Sistem Agro-Edu BiBoo
+                      Sistem Agro-Edu Box
                     </div>
                   </div>
 
@@ -350,7 +350,7 @@ export default function KuisPage() {
               <div className="flex items-center gap-3">
                 <span className="text-3xl">🌱</span>
                 <span className="font-heading font-extrabold text-2xl text-yellow-300">
-                  Agro-Edu BiBoo · Mode Presentasi Kelas
+                  Agro-Edu Box · Mode Presentasi Kelas
                 </span>
               </div>
               <button

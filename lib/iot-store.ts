@@ -120,3 +120,4 @@ export function ingestTelemetryData(payload: IngestPayload) {
     receivedAt: nowIso,
   };
 }
+
