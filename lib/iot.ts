@@ -18,25 +18,25 @@ export function getStatusColors(status: IotStatus): {
   dot: string;
 } {
   const map: Record<IotStatus, { text: string; bg: string; dot: string }> = {
-    online: { text: "text-siswa-600", bg: "bg-siswa-100", dot: "bg-siswa-600" },
-    data_terakhir: { text: "text-[#8A5A00]", bg: "bg-[#FFF4D6]", dot: "bg-[#8A5A00]" },
-    offline: { text: "text-gray-500", bg: "bg-[#EEF0F2]", dot: "bg-gray-400" },
-    tidak_valid: { text: "text-[#B42318]", bg: "bg-[#FDECEA]", dot: "bg-[#B42318]" },
-    simulasi: { text: "text-[#6941C6]", bg: "bg-[#F1EBFF]", dot: "bg-[#6941C6]" },
+    online: { text: "text-green-700 font-bold", bg: "bg-green-100 border border-green-300", dot: "bg-green-500" },
+    data_terakhir: { text: "text-brown-600 font-bold", bg: "bg-cream-50 border border-yellow-300", dot: "bg-yellow-500" },
+    offline: { text: "text-ink-600 font-semibold", bg: "bg-[#EAEFE6] border border-ink-300/40", dot: "bg-ink-300" },
+    tidak_valid: { text: "text-red-500 font-bold", bg: "bg-[#FEECEB] border border-red-200", dot: "bg-red-500" },
+    simulasi: { text: "text-blue-500 font-bold", bg: "bg-blue-200/50 border border-blue-300", dot: "bg-blue-500" },
   };
-  return map[status] ?? { text: "text-gray-500", bg: "bg-gray-100", dot: "bg-gray-400" };
+  return map[status] ?? { text: "text-ink-600", bg: "bg-green-100", dot: "bg-ink-300" };
 }
 
 export function getTaskStatusColors(status: string): { text: string; bg: string; dot: string } {
   const map: Record<string, { text: string; bg: string; dot: string }> = {
-    draf: { text: "text-gray-500", bg: "bg-[#EEF0F2]", dot: "bg-gray-400" },
-    terkirim: { text: "text-guru-600", bg: "bg-guru-100", dot: "bg-guru-600" },
-    perlu_revisi: { text: "text-[#8A5A00]", bg: "bg-[#FFF4D6]", dot: "bg-[#8A5A00]" },
-    dinilai: { text: "text-siswa-600", bg: "bg-siswa-100", dot: "bg-siswa-600" },
-    terbit: { text: "text-siswa-600", bg: "bg-siswa-100", dot: "bg-siswa-600" },
-    diarsipkan: { text: "text-gray-500", bg: "bg-[#EEF0F2]", dot: "bg-gray-400" },
+    draf: { text: "text-ink-600 font-semibold", bg: "bg-green-50 border border-green-200", dot: "bg-ink-300" },
+    terkirim: { text: "text-blue-500 font-bold", bg: "bg-blue-200/40 border border-blue-300", dot: "bg-blue-500" },
+    perlu_revisi: { text: "text-brown-600 font-bold", bg: "bg-cream-50 border border-yellow-300", dot: "bg-yellow-500" },
+    dinilai: { text: "text-green-700 font-bold", bg: "bg-green-100 border border-green-300", dot: "bg-green-500" },
+    terbit: { text: "text-green-700 font-bold", bg: "bg-green-100 border border-green-300", dot: "bg-green-500" },
+    diarsipkan: { text: "text-ink-600", bg: "bg-gray-100 border border-gray-200", dot: "bg-gray-400" },
   };
-  return map[status] ?? { text: "text-gray-500", bg: "bg-gray-100", dot: "bg-gray-400" };
+  return map[status] ?? { text: "text-ink-600", bg: "bg-gray-100", dot: "bg-gray-400" };
 }
 
 export function formatTimeAgo(isoString: string): string {
@@ -47,8 +47,8 @@ export function formatTimeAgo(isoString: string): string {
   const diffMin = Math.floor(diffSec / 60);
   const diffHour = Math.floor(diffMin / 60);
 
-  if (diffSec < 60) return `${diffSec} detik lalu`;
-  if (diffMin < 60) return `${diffMin} menit lalu`;
+  if (diffSec < 60) return `${diffSec} dtk lalu`;
+  if (diffMin < 60) return `${diffMin} mnt lalu`;
   if (diffHour < 24) return `${diffHour} jam lalu`;
   return then.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 }

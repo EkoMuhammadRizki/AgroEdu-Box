@@ -4,19 +4,67 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS Variables per peran ─────────────────────────────────── */
+/* ── DESIGN 2.md CSS Variables ──────────────────────────────── */
+:root {
+  --green-600: #3F9B2E;
+  --green-500: #6CC04A;
+  --green-400: #8FD16A;
+  --green-200: #CDEBB0;
+  --green-100: #EAF6D9;
+  --yellow-500: #FFB81C;
+  --yellow-300: #FFD95A;
+  --blue-500: #3FA7E0;
+  --blue-200: #BFE6F7;
+  --brown-600: #7A4B24;
+  --brown-400: #A9703A;
+  --orange-400: #F59A3B;
+  --red-500: #E5483B;
+  --cream-50: #FFFBEA;
+  --white: #FFFFFF;
+  --ink-900: #2F3B1F;
+  --ink-600: #5B6B45;
+  --ink-300: #A9B596;
+
+  /* Gradients */
+  --grad-bg-sky: linear-gradient(180deg, #BFE6F7 0%, #EAF6D9 60%, #CDEBB0 100%);
+  --grad-btn-green: linear-gradient(180deg, #8FD16A 0%, #3F9B2E 100%);
+  --grad-btn-yellow: linear-gradient(180deg, #FFD95A 0%, #FFB81C 100%);
+  --grad-btn-blue: linear-gradient(180deg, #6CC4F0 0%, #3FA7E0 100%);
+  --grad-trophy: linear-gradient(180deg, #FFE27A 0%, #F5A623 100%);
+
+  /* Radius */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-xl: 36px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-card: 0 8px 20px rgba(63, 155, 46, 0.18);
+  --shadow-btn: 0 4px 0 #2F7A22, 0 8px 14px rgba(63, 155, 46, 0.25);
+  --shadow-btn-yellow: 0 4px 0 #D98F00, 0 8px 14px rgba(255, 184, 28, 0.3);
+  --shadow-btn-blue: 0 4px 0 #2A82B8, 0 8px 14px rgba(63, 167, 224, 0.3);
+  --shadow-float: 0 12px 28px rgba(47, 59, 31, 0.15);
+
+  /* Default role accent */
+  --accent: #3F9B2E;
+  --accent-hover: #2F7A22;
+  --accent-soft: #EAF6D9;
+  --accent-text: #3F9B2E;
+}
+
 [data-role="siswa"] {
-  --accent: #166A43;
-  --accent-hover: #0F5434;
-  --accent-soft: #E5F2E9;
-  --accent-text: #166A43;
+  --accent: #3F9B2E;
+  --accent-hover: #2F7A22;
+  --accent-soft: #EAF6D9;
+  --accent-text: #3F9B2E;
 }
 
 [data-role="guru"] {
-  --accent: #1F55B8;
-  --accent-hover: #184493;
-  --accent-soft: #E6EEFF;
-  --accent-text: #1F55B8;
+  --accent: #3FA7E0;
+  --accent-hover: #2A82B8;
+  --accent-soft: #BFE6F7;
+  --accent-text: #2A82B8;
 }
 
 /* ── Base styles ─────────────────────────────────────────────── */
@@ -27,27 +75,25 @@
   }
 
   body {
-    @apply bg-bg text-ink font-sans;
+    @apply bg-bg text-ink font-body;
   }
 
   * {
     @apply box-border;
   }
 
-  /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
   }
 
-  /* Focus visible hanya untuk keyboard */
   :focus:not(:focus-visible) {
     outline: none;
   }
 
   :focus-visible {
-    outline: 2px solid var(--accent, #166A43);
+    outline: 3px solid var(--blue-500);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 8px;
   }
 }
 
@@ -60,166 +106,229 @@
   .hover\:bg-accent-hover:hover { background-color: var(--accent-hover); }
   .ring-accent { --tw-ring-color: var(--accent); }
 
-  /* Tabular numbers untuk sensor */
   .tabular-nums { font-variant-numeric: tabular-nums; }
 
-  /* Scrollbar tipis */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #DCE5DF transparent;
+    scrollbar-color: var(--green-200) transparent;
   }
 
-  /* Animasi titik online */
   .dot-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    50% { opacity: 0.35; }
+  }
+
+  /* BiBoo gentle floating */
+  @keyframes biboo-float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-7px) rotate(1deg); }
+  }
+
+  .animate-biboo {
+    animation: biboo-float 3.2s ease-in-out infinite;
+  }
+
+  @keyframes leaf-sway {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(6deg); }
+  }
+
+  .animate-leaf {
+    transform-origin: bottom center;
+    animation: leaf-sway 2.5s ease-in-out infinite;
   }
 
   /* Card hover lift */
   .card-hover {
-    @apply transition-all duration-150 ease-out;
+    @apply transition-all duration-200 ease-out;
   }
   .card-hover:hover {
-    @apply shadow-md -translate-y-0.5;
+    @apply -translate-y-1 shadow-card-hover;
   }
 }
 
 /* ── Component layer ─────────────────────────────────────────── */
 @layer components {
+  /* 3D pressable buttons (Section 5.1) */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 h-11 px-5 rounded-ctl
-           bg-[var(--accent)] text-white font-semibold text-sm
-           hover:bg-[var(--accent-hover)] active:scale-[0.98]
+    @apply inline-flex items-center justify-center gap-2 h-12 px-6 rounded-pill
+           text-white font-heading font-bold text-sm md:text-base
            transition-all duration-150 ease-out
-           focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent)];
+           focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[var(--blue-500)];
+    background-image: var(--grad-btn-green);
+    box-shadow: var(--shadow-btn);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.05);
+  }
+  .btn-primary:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #2F7A22, 0 2px 4px rgba(63, 155, 46, 0.2);
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 h-11 px-5 rounded-ctl
-           bg-surface border border-line text-ink font-semibold text-sm
-           hover:bg-surface-muted active:scale-[0.98]
-           transition-all duration-150 ease-out;
+    @apply inline-flex items-center justify-center gap-2 h-12 px-6 rounded-pill
+           text-ink font-heading font-bold text-sm md:text-base
+           transition-all duration-150 ease-out
+           focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[var(--blue-500)];
+    background-image: var(--grad-btn-yellow);
+    box-shadow: var(--shadow-btn-yellow);
+  }
+  .btn-secondary:hover {
+    filter: brightness(1.05);
+  }
+  .btn-secondary:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #D98F00, 0 2px 4px rgba(255, 184, 28, 0.2);
+  }
+
+  .btn-info {
+    @apply inline-flex items-center justify-center gap-2 h-12 px-6 rounded-pill
+           text-white font-heading font-bold text-sm md:text-base
+           transition-all duration-150 ease-out
+           focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[var(--blue-500)];
+    background-image: var(--grad-btn-blue);
+    box-shadow: var(--shadow-btn-blue);
+  }
+  .btn-info:hover {
+    filter: brightness(1.05);
+  }
+  .btn-info:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #2A82B8, 0 2px 4px rgba(63, 167, 224, 0.2);
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 h-10 px-4 rounded-ctl
-           bg-transparent text-ink-muted font-medium text-sm
-           hover:bg-accent-soft hover:text-[var(--accent)]
+    @apply inline-flex items-center justify-center gap-2 h-10 px-4 rounded-pill
+           bg-white/80 border-2 border-green-200 text-green-600 font-heading font-bold text-sm
+           hover:bg-green-100 hover:border-green-400
            transition-all duration-150 ease-out;
   }
 
   .input-field {
-    @apply h-11 w-full rounded-ctl border border-line bg-surface px-3 text-sm text-ink
-           placeholder:text-ink-muted
-           focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)]
+    @apply h-12 w-full rounded-sm border-2 border-green-200 bg-white px-4 text-sm text-ink
+           placeholder:text-ink-300 font-body
+           focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-400/25
            transition-all duration-150;
   }
 
+  /* Bubble Card with 3px white border and soft green shadow */
   .card {
-    @apply bg-surface rounded-card border border-line p-4 md:p-5;
+    @apply bg-surface rounded-card border-[3px] border-white p-5 md:p-6 shadow-card;
+  }
+
+  .card-cream {
+    @apply bg-cream-50 rounded-card border-[3px] border-white p-5 md:p-6 shadow-card;
+  }
+
+  .card-green {
+    @apply bg-green-100 rounded-card border-[3px] border-white p-5 md:p-6 shadow-card;
   }
 
   .panel-header {
-    @apply px-4 py-2 rounded-t-card bg-accent-soft text-[var(--accent)] 
-           text-xs font-bold tracking-widest uppercase;
+    @apply px-4 py-2.5 rounded-t-[24px] bg-green-100 text-green-700
+           text-xs font-heading font-bold tracking-wider uppercase border-b border-green-200/60;
   }
 }
 
-/* ── SweetAlert2 Custom Styling ──────────────────────────────── */
+/* ── SweetAlert2 Custom Theming (BiBoo Style) ────────────────── */
 .swal2-container .swal2-popup {
-  border-radius: 1.25rem !important;
-  padding: 1.5rem !important;
-  font-family: inherit !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 1.75rem !important;
+  font-family: var(--font-body), sans-serif !important;
+  border: 3px solid #FFFFFF !important;
+  box-shadow: var(--shadow-card) !important;
+  background-color: #FFFBEA !important;
 }
 
 .swal2-container .swal2-title {
-  color: #17352A !important;
-  font-size: 1.125rem !important;
-  font-weight: 700 !important;
+  color: #2F3B1F !important;
+  font-family: var(--font-heading), sans-serif !important;
+  font-size: 1.35rem !important;
+  font-weight: 800 !important;
   margin-bottom: 0.5rem !important;
 }
 
 .swal2-container .swal2-html-container {
-  color: #5F7068 !important;
-  font-size: 0.8125rem !important;
-  line-height: 1.5 !important;
+  color: #5B6B45 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.55 !important;
 }
 
 .swal2-container .swal2-actions {
   display: flex !important;
-  gap: 0.625rem !important;
-  margin-top: 1.25rem !important;
+  gap: 0.75rem !important;
+  margin-top: 1.5rem !important;
 }
 
 .swal-btn-danger {
-  background-color: #E11D48 !important;
+  background-color: #E5483B !important;
   color: #FFFFFF !important;
-  font-weight: 600 !important;
-  font-size: 0.8125rem !important;
-  padding: 0.625rem 1.25rem !important;
-  border-radius: 0.75rem !important;
+  font-family: var(--font-heading), sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  padding: 0.7rem 1.5rem !important;
+  border-radius: 999px !important;
   border: none !important;
   cursor: pointer !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 4px 0 #9E2419, 0 6px 12px rgba(229, 72, 59, 0.25) !important;
   transition: all 0.15s ease-out !important;
 }
 
 .swal-btn-danger:hover {
-  background-color: #BE123C !important;
+  filter: brightness(1.05) !important;
 }
 
 .swal-btn-siswa {
-  background-color: #166A43 !important;
+  background-image: var(--grad-btn-green) !important;
   color: #FFFFFF !important;
-  font-weight: 600 !important;
-  font-size: 0.8125rem !important;
-  padding: 0.625rem 1.25rem !important;
-  border-radius: 0.75rem !important;
+  font-family: var(--font-heading), sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  padding: 0.7rem 1.6rem !important;
+  border-radius: 999px !important;
   border: none !important;
   cursor: pointer !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  box-shadow: var(--shadow-btn) !important;
   transition: all 0.15s ease-out !important;
 }
 
 .swal-btn-siswa:hover {
-  background-color: #0F5434 !important;
+  filter: brightness(1.05) !important;
 }
 
 .swal-btn-guru {
-  background-color: #1F55B8 !important;
+  background-image: var(--grad-btn-blue) !important;
   color: #FFFFFF !important;
-  font-weight: 600 !important;
-  font-size: 0.8125rem !important;
-  padding: 0.625rem 1.25rem !important;
-  border-radius: 0.75rem !important;
+  font-family: var(--font-heading), sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  padding: 0.7rem 1.6rem !important;
+  border-radius: 999px !important;
   border: none !important;
   cursor: pointer !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  box-shadow: var(--shadow-btn-blue) !important;
   transition: all 0.15s ease-out !important;
-}
-
-.swal-btn-guru:hover {
-  background-color: #184493 !important;
 }
 
 .swal-btn-cancel {
   background-color: #FFFFFF !important;
-  color: #17352A !important;
-  font-weight: 600 !important;
-  font-size: 0.8125rem !important;
-  padding: 0.625rem 1.25rem !important;
-  border-radius: 0.75rem !important;
-  border: 1px solid #DCE5DF !important;
+  color: #5B6B45 !important;
+  font-family: var(--font-heading), sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  padding: 0.7rem 1.4rem !important;
+  border-radius: 999px !important;
+  border: 2px solid #CDEBB0 !important;
   cursor: pointer !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
   transition: all 0.15s ease-out !important;
 }
 
 .swal-btn-cancel:hover {
-  background-color: #F7FAF8 !important;
+  background-color: #EAF6D9 !important;
 }
-

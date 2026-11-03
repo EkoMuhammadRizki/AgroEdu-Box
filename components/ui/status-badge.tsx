@@ -32,7 +32,7 @@ export function StatusBadge({ status, showDot = true, className = "" }: StatusBa
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${colors.text} ${colors.bg} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-heading ${colors.text} ${colors.bg} ${className}`}
     >
       {showDot && (
         <span

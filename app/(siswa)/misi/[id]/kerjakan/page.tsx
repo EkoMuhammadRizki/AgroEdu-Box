@@ -3,8 +3,9 @@ import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-sh
 import { mockMissions, mockDevices } from "@/lib/mock-data";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Save, Send, Camera, Upload, Info } from "lucide-react";
+import { Save, Send, Camera, Upload, Info, Check, Sparkles, Droplets, ArrowLeft } from "lucide-react";
 import { showSuccessAlert, showWarningAlert, showConfirmDialog, showToast } from "@/lib/swal";
+import Link from "next/link";
 
 export default function KerjakanMisiPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function KerjakanMisiPage() {
     conclusion: "",
     reflection: "",
     selectedSensors: [] as string[],
+    attachments: [] as string[],
   });
   const [status, setStatus] = useState<"idle" | "saved" | "submitted">("idle");
 
@@ -33,174 +35,232 @@ export default function KerjakanMisiPage() {
     <AppShell role="siswa">
       <PageHeader
         title={`Kerjakan: ${mission.title}`}
-        description="Isi formulir pengerjaan misi dan kumpulkan buktimu."
+        description="Lengkapi bukti pengamatan visual dan lampiran data sensor fisik."
+        action={
+          <Link href={`/misi/${mission.id}`} className="btn-ghost text-xs gap-1.5 inline-flex items-center">
+            <ArrowLeft className="h-4 w-4" />
+            Detail Kartu Misi
+          </Link>
+        }
       />
 
-      <ContentWrapper className="space-y-4 pb-8">
+      <ContentWrapper className="space-y-5 pb-10">
         {/* Status bar */}
         {status !== "idle" && (
-          <div className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium ${
-            status === "saved" ? "bg-siswa-100 text-siswa-600" : "bg-guru-100 text-guru-600"
+          <div className={`flex items-center gap-2 p-3.5 rounded-2xl text-xs md:text-sm font-heading font-bold shadow-xs ${
+            status === "saved" ? "bg-yellow-300 text-brown-600 border-2 border-yellow-400" : "bg-green-100 text-green-800 border-2 border-green-300"
           }`}>
-            {status === "saved" ? "✓ Draf tersimpan" : "✓ Misi berhasil dikirim!"}
+            <Check className="w-4 h-4 stroke-[3]" />
+            {status === "saved" ? "Draf laporan berhasil disimpan di sesi lokalmu!" : "Misi berhasil dikirimkan ke guru pembimbing!"}
           </div>
         )}
 
-        {/* Panduan */}
-        <div className="flex items-start gap-3 p-3 rounded-xl bg-accent-soft border border-[var(--accent)]/20">
-          <Info className="h-4 w-4 text-[var(--accent)] flex-shrink-0 mt-0.5" strokeWidth={2} />
-          <p className="text-xs text-ink-muted">
-            Isi setiap bagian berdasarkan pengamatan dan data sensor yang kamu kumpulkan sendiri.
-            Data sensor harus dicatat dengan waktu pembacaannya.
+        {/* Panduan Ilmiah */}
+        <div className="bg-green-100/80 border-2 border-green-300 rounded-3xl p-4 flex items-start gap-3 shadow-xs">
+          <Info className="h-5 w-5 text-green-700 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-ink-900 leading-relaxed font-medium">
+            <strong>Petunjuk:</strong> Hubungkan apa yang terlihat langsung pada tanaman (warna daun, kesegaran batang) dengan angka sensor (suhu, kelembapan). Jangan menyimpulkan hanya dari satu data saja!
           </p>
         </div>
 
-        {/* 1. Catatan Pengamatan */}
-        <div className="card">
-          <label className="block text-sm font-bold text-ink mb-1">
-            1. Catatan Pengamatan Visual <span className="text-[#B42318]">*</span>
-          </label>
-          <p className="text-xs text-ink-muted mb-2">Deskripsikan apa yang kamu lihat pada tanaman dan media tanam secara langsung.</p>
+        {/* 1. Catatan Pengamatan Visual */}
+        <div className="card space-y-2">
+          <div className="flex items-center justify-between">
+            <label htmlFor="obs-text" className="font-heading font-extrabold text-sm md:text-base text-ink-900">
+              1. Catatan Pengamatan Visual Lapangan <span className="text-red-500">*</span>
+            </label>
+            <span className="text-[11px] font-bold text-ink-600">Wajib diisi</span>
+          </div>
+          <p className="text-xs text-ink-600 leading-relaxed">
+            Deskripsikan kondisi fisik tanaman secara nyata: warna daun, tunas baru, tinggi tanaman, dan kelembapan media saat disentuh.
+          </p>
           <textarea
+            id="obs-text"
             rows={4}
-            className="input-field h-auto resize-none"
-            placeholder="Contoh: Daun kangkung berwarna hijau tua, batang tegak, tidak ada tanda-tanda layu. Media tanam terasa lembap saat disentuh..."
+            className="input-field h-auto py-3 leading-relaxed text-xs md:text-sm"
+            placeholder="Contoh: Daun kangkung terlihat hijau segar, batang tegak tidak ada tanda layu. Permukaan cocopeat terasa lembap gembur..."
             value={form.observation}
             onChange={(e) => handleChange("observation", e.target.value)}
           />
-          {!form.observation && (
-            <p className="text-xs text-[#B42318] mt-1">Catatan pengamatan wajib diisi.</p>
-          )}
         </div>
 
-        {/* 2. Data Sensor */}
-        <div className="card">
-          <label className="block text-sm font-bold text-ink mb-1">2. Data Sensor yang Digunakan</label>
-          <p className="text-xs text-ink-muted mb-3">Pilih data sensor yang kamu gunakan sebagai bukti. Pastikan catat waktu pembacaannya.</p>
-
-          {device.sensors.map((sensor) => (
-            <label
-              key={sensor.sensorId}
-              className="flex items-center gap-3 p-3 rounded-xl border border-line hover:border-[var(--accent)] cursor-pointer transition-all duration-150 mb-2"
-            >
-              <input
-                type="checkbox"
-                className="accent-[var(--accent)] h-4 w-4"
-                onChange={(e) => {
-                  const next = e.target.checked
-                    ? [...form.selectedSensors, sensor.sensorId]
-                    : form.selectedSensors.filter((s) => s !== sensor.sensorId);
-                  setForm((f) => ({ ...f, selectedSensors: next }));
-                }}
-              />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-ink">
-                  {sensor.sensorType === "air_temp" ? "Suhu Udara" :
-                   sensor.sensorType === "air_humidity" ? "Kelembapan Udara" :
-                   sensor.sensorType === "soil_moisture" ? "Kelembapan Tanah" : "Intensitas Cahaya"} —{" "}
-                  <span className="text-[var(--accent)] font-bold tabular-nums">{sensor.value}{sensor.unit}</span>
-                </p>
-                <p className="text-xs text-ink-muted">
-                  Waktu baca: {new Date(sensor.measuredAt).toLocaleString("id-ID")}
-                </p>
-              </div>
+        {/* 2. Lampirkan Data Sensor IoT */}
+        <div className="card space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="font-heading font-extrabold text-sm md:text-base text-ink-900">
+              2. Lampirkan Data Sensor sebagai Bukti Kuat
             </label>
-          ))}
+            <Link href="/lab-iot" className="text-xs font-heading font-bold text-green-700 hover:underline">
+              Buka Lab IoT →
+            </Link>
+          </div>
+          <p className="text-xs text-ink-600">
+            Centang sensor yang relevan dengan pengamatanmu dari <strong>{device.name}</strong>:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {device.sensors.map((sensor) => {
+              const isChecked = form.selectedSensors.includes(sensor.sensorId);
+              return (
+                <label
+                  key={sensor.sensorId}
+                  className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
+                    isChecked
+                      ? "border-green-500 bg-green-100/70 shadow-xs"
+                      : "border-green-200 bg-white hover:bg-green-50"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    className="accent-green-600 h-4 w-4 rounded cursor-pointer"
+                    onChange={(e) => {
+                      const next = e.target.checked
+                        ? [...form.selectedSensors, sensor.sensorId]
+                        : form.selectedSensors.filter((s) => s !== sensor.sensorId);
+                      setForm((f) => ({ ...f, selectedSensors: next }));
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-heading font-bold text-ink-900 truncate">
+                      {sensor.sensorType === "air_temp" ? "Suhu Udara" :
+                       sensor.sensorType === "air_humidity" ? "Kelembapan Udara" :
+                       sensor.sensorType === "soil_moisture" ? "Kelembapan Tanah" : "Intensitas Cahaya"}
+                    </p>
+                    <p className="text-xs text-green-700 font-extrabold tabular-nums">
+                      {sensor.value} {sensor.unit}
+                    </p>
+                    <p className="text-[10px] text-ink-600">
+                      Waktu: {new Date(sensor.measuredAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
+                    </p>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
         </div>
 
-        {/* 3. Kesimpulan */}
-        <div className="card">
-          <label className="block text-sm font-bold text-ink mb-1">
-            3. Kesimpulan <span className="text-[#B42318]">*</span>
+        {/* 3. Kesimpulan Ilmiah */}
+        <div className="card space-y-2">
+          <label htmlFor="concl-text" className="font-heading font-extrabold text-sm md:text-base text-ink-900 block">
+            3. Kesimpulan Ilmiah <span className="text-red-500">*</span>
           </label>
-          <p className="text-xs text-ink-muted mb-2">Tulis kesimpulanmu berdasarkan pengamatan DAN data sensor. Jangan simpulkan hanya dari satu sumber.</p>
+          <p className="text-xs text-ink-600">
+            Tulis kesimpulan logis berdasarkan gabungan pengamatan visual DAN bukti data sensor di atas.
+          </p>
           <textarea
-            rows={4}
-            className="input-field h-auto resize-none"
-            placeholder="Berdasarkan pengamatan visual dan data sensor (suhu X°C, kelembapan tanah X%)..."
+            id="concl-text"
+            rows={3}
+            className="input-field h-auto py-3 leading-relaxed text-xs md:text-sm"
+            placeholder="Contoh: Berdasarkan data suhu 28.4°C dan kelembapan media 45%, tanaman berada dalam kondisi vegetatif optimal..."
             value={form.conclusion}
             onChange={(e) => handleChange("conclusion", e.target.value)}
           />
         </div>
 
-        {/* 4. Refleksi */}
-        <div className="card">
-          <label className="block text-sm font-bold text-ink mb-1">
-            4. Refleksi <span className="text-[#B42318]">*</span>
+        {/* 4. Refleksi & Pertanyaan Lanjutan */}
+        <div className="card space-y-2">
+          <label htmlFor="ref-text" className="font-heading font-extrabold text-sm md:text-base text-ink-900 block">
+            4. Refleksi Pembelajaran <span className="text-red-500">*</span>
           </label>
-          <p className="text-xs text-ink-muted mb-2">Apa yang kamu pelajari? Apa pertanyaan lanjutan yang muncul?</p>
+          <p className="text-xs text-ink-600">
+            Apa hal baru yang kamu pelajari dari eksperimen ini? Apa pertanyaan yang ingin kamu teliti selanjutnya?
+          </p>
           <textarea
+            id="ref-text"
             rows={3}
-            className="input-field h-auto resize-none"
-            placeholder="Saya belajar bahwa... Saya masih penasaran tentang..."
+            className="input-field h-auto py-3 leading-relaxed text-xs md:text-sm"
+            placeholder="Contoh: Saya belajar bahwa angka kelembapan tanah sangat mempengaruhi laju pertumbuhan tunas baru..."
             value={form.reflection}
             onChange={(e) => handleChange("reflection", e.target.value)}
           />
         </div>
 
-        {/* 5. Upload Bukti */}
-        <div className="card">
-          <label className="block text-sm font-bold text-ink mb-1">5. Bukti Tambahan (opsional)</label>
-          <div className="flex gap-2 mt-2">
+        {/* 5. Lampiran Bukti Foto / Dokumen */}
+        <div className="card space-y-3">
+          <label className="font-heading font-extrabold text-sm md:text-base text-ink-900 block">
+            5. Bukti Foto / Dokumen Pendukung (Opsional)
+          </label>
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               type="button"
-              onClick={() => showSuccessAlert("Simulasi Foto Berhasil", "Foto dokumentasi pertumbuhan tanaman telah berhasil ditambahkan.")}
-              className="btn-secondary gap-2 text-xs flex-1 cursor-pointer"
+              onClick={() => {
+                setForm((f) => ({ ...f, attachments: [...f.attachments, "foto_tunas_kangkung.jpg"] }));
+                showSuccessAlert("Foto Terlampir!", "Foto dokumentasi tanaman hidroponik berhasil ditambahkan.", 1200);
+              }}
+              className="btn-ghost text-xs gap-2 flex-1 border-2 border-green-300 py-2.5 cursor-pointer inline-flex items-center justify-center"
             >
-              <Camera className="h-3.5 w-3.5" strokeWidth={1.75} />
-              Foto Tanaman
+              <Camera className="w-4 h-4 text-green-600" />
+              Ambil / Unggah Foto Tanaman
             </button>
             <button
               type="button"
-              onClick={() => showSuccessAlert("Simulasi Dokumen", "Dokumen grafik sensor IoT terlampir dengan format PDF.")}
-              className="btn-secondary gap-2 text-xs flex-1 cursor-pointer"
+              onClick={() => {
+                setForm((f) => ({ ...f, attachments: [...f.attachments, "grafik_lab_iot.pdf"] }));
+                showSuccessAlert("Grafik Terlampir!", "Ekspor grafik IoT berhasil dilampirkan.", 1200);
+              }}
+              className="btn-ghost text-xs gap-2 flex-1 border-2 border-green-300 py-2.5 cursor-pointer inline-flex items-center justify-center"
             >
-              <Upload className="h-3.5 w-3.5" strokeWidth={1.75} />
-              Upload Dokumen
+              <Upload className="w-4 h-4 text-green-600" />
+              Lampirkan Tangkapan Layar Sensor
             </button>
           </div>
-          <p className="text-[10px] text-ink-muted mt-2">Foto hanya bila diizinkan sekolah. Maks 5MB per file.</p>
+
+          {form.attachments.length > 0 && (
+            <div className="pt-2 flex flex-wrap gap-2">
+              {form.attachments.map((att, i) => (
+                <span key={i} className="px-3 py-1 rounded-pill bg-green-100 text-green-800 text-xs font-bold border border-green-300 inline-flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5" /> {att}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Footer actions — sticky on mobile */}
-        <div className="sticky bottom-20 lg:relative lg:bottom-auto flex gap-3 bg-bg/80 backdrop-blur-sm lg:backdrop-blur-none lg:bg-transparent py-2 -mx-4 px-4 lg:mx-0 lg:px-0">
+        {/* Tombol Aksi Bawah */}
+        <div className="pt-2 flex flex-col sm:flex-row gap-3">
           <button
             type="button"
-            className="btn-secondary flex-1 gap-2 cursor-pointer"
+            className="btn-secondary flex-1 gap-2 cursor-pointer inline-flex items-center justify-center"
             onClick={async () => {
               setStatus("saved");
               await showToast("Draf misi berhasil disimpan!", "success");
             }}
           >
-            <Save className="h-4 w-4" strokeWidth={1.75} />
-            Simpan Draf
+            <Save className="h-4 w-4" />
+            Simpan Draf Laporan
           </button>
+
           <button
             type="button"
-            className={`btn-primary flex-[2] gap-2 cursor-pointer ${isEmpty ? "opacity-60" : ""}`}
+            className={`btn-primary flex-[2] gap-2 cursor-pointer inline-flex items-center justify-center ${isEmpty ? "opacity-60" : ""}`}
             onClick={async () => {
               if (isEmpty) {
                 await showWarningAlert("Data Belum Lengkap", "Harap isi Catatan Pengamatan, Kesimpulan, dan Refleksi sebelum mengirim.");
                 return;
               }
               const confirm = await showConfirmDialog({
-                title: "Kumpulkan Misi?",
-                text: "Laporan observasi dan data sensor akan dikirimkan kepada guru pembimbing untuk dievaluasi.",
+                title: "Kumpulkan Misi ke Guru?",
+                text: "Laporan observasi dan bukti sensor akan dikirimkan langsung ke penilaian guru pembimbing.",
                 icon: "question",
-                confirmButtonText: "Ya, Kirim Sekarang",
+                confirmButtonText: "Ya, Kirim Sekarang!",
                 cancelButtonText: "Periksa Lagi",
                 role: "siswa",
               });
 
               if (confirm.isConfirmed) {
                 setStatus("submitted");
-                await showSuccessAlert("Misi Berhasil Dikirim!", "Laporanmu telah berhasil dikirimkan ke guru pembimbing. Pantau status penilaian di menu Misi & Tugas.", 1800);
+                await showSuccessAlert(
+                  "Misi Berhasil Dikirimkan! 🎉",
+                  "Laporanmu telah diterima Pak Eko. Kamu mendapatkan +40 Bintang!",
+                  1800
+                );
                 router.push("/misi");
               }
             }}
           >
-            <Send className="h-4 w-4" strokeWidth={1.75} />
-            Kirim Misi
+            <Send className="h-4 w-4" />
+            Saya Sudah Selesai! Kirim Misi Ini
           </button>
         </div>
       </ContentWrapper>

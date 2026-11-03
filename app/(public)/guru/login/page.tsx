@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Leaf, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
 import { showSuccessAlert, showWarningAlert } from "@/lib/swal";
+import Link from "next/link";
 
 export default function GuruLoginPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: "eko.mulyadi@sekolah.sch.id", password: "password123" });
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,7 +16,7 @@ export default function GuruLoginPage() {
     e.preventDefault();
     if (!form.email.trim()) {
       setError("Email wajib diisi.");
-      await showWarningAlert("Email Wajib Diisi", "Silakan masukkan email terdaftar akun guru Anda.");
+      await showWarningAlert("Email Wajib Diisi", "Silakan masukkan email guru terdaftar.");
       return;
     }
     if (!form.password) {
@@ -25,50 +26,52 @@ export default function GuruLoginPage() {
     }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 600));
-    await showSuccessAlert("Login Guru Berhasil!", "Selamat datang kembali di Portal AGRO EDU TRACK.", 1300);
+    await showSuccessAlert("Login Guru Berhasil! 🎓", "Selamat datang kembali di Portal AGRO EDU TRACK.", 1300);
     router.push("/guru/dashboard");
   };
 
   return (
-    <div data-role="guru" className="min-h-dvh bg-bg flex items-center justify-center p-4">
+    <div data-role="guru" className="min-h-dvh bg-gradient-to-b from-[#BFE6F7] via-[#EAF6D9] to-[#CDEBB0] flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         {/* Logo */}
-        <div className="text-center space-y-3">
+        <div className="text-center space-y-2">
           <div className="flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-guru-100 shadow-sm">
-              <Leaf className="h-8 w-8 text-guru-600" strokeWidth={1.5} />
+            <div className="w-16 h-16 rounded-3xl bg-white shadow-card flex items-center justify-center border-2 border-blue-200">
+              <span className="text-3xl">🌿</span>
             </div>
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-ink">AGRO EDU TRACK</h1>
-            <p className="text-sm text-ink-muted mt-1">Portal Guru — AGRO EDU BOX</p>
+            <h1 className="font-heading font-extrabold text-2xl text-ink-900 tracking-tight">
+              AGRO EDU TRACK
+            </h1>
+            <p className="text-xs text-ink-600 font-bold">Portal Guru & Bimbingan IoT</p>
           </div>
         </div>
 
-        <div className="card shadow-sm">
-          <div className="panel-header -mx-4 -mt-4 md:-mx-5 md:-mt-5 mb-5 rounded-t-card" style={{ background: "#E6EEFF", color: "#1F55B8" }}>
-            MASUK SEBAGAI GURU
+        <div className="card-cream space-y-4 shadow-card">
+          <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-2 bg-blue-200/60 border-blue-300 text-blue-500">
+            MASUK SEBAGAI GURU PEMBIMBING
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-xs font-medium text-ink-muted mb-1">
-                Email <span className="text-[#B42318]">*</span>
+              <label htmlFor="email" className="block text-xs font-heading font-bold text-ink-600 mb-1">
+                Email Guru Terdaftar <span className="text-red-500">*</span>
               </label>
               <input
                 id="email"
                 type="email"
                 autoComplete="email"
                 className="input-field"
-                placeholder="email@sekolah.sch.id"
+                placeholder="nama.guru@sekolah.sch.id"
                 value={form.email}
                 onChange={(e) => { setForm((f) => ({ ...f, email: e.target.value })); setError(""); }}
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-xs font-medium text-ink-muted mb-1">
-                Kata Sandi <span className="text-[#B42318]">*</span>
+              <label htmlFor="password" className="block text-xs font-heading font-bold text-ink-600 mb-1">
+                Kata Sandi <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -83,32 +86,31 @@ export default function GuruLoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPass((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-600 hover:text-ink-900"
                 >
-                  {showPass ? <EyeOff className="h-4 w-4" strokeWidth={1.75} /> : <Eye className="h-4 w-4" strokeWidth={1.75} />}
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {error && <p className="text-xs text-[#B42318]">{error}</p>}
+            {error && <p className="text-xs text-red-500 font-bold">{error}</p>}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 rounded-ctl bg-guru-600 text-white font-semibold text-sm hover:bg-guru-700 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
+              className="btn-info w-full text-base cursor-pointer"
             >
-              {loading ? (
-                <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-              ) : "Masuk"}
+              {loading ? "Memverifikasi..." : "Masuk ke Dashboard Guru"}
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         </div>
 
-        <p className="text-center text-xs text-ink-muted">
-          Kamu siswa?{" "}
-          <a href="/login" className="text-siswa-600 font-semibold hover:underline">
-            Masuk sebagai Siswa →
-          </a>
+        <p className="text-center text-xs text-ink-600 font-medium">
+          Kamu seorang siswa?{" "}
+          <Link href="/" className="text-green-700 font-heading font-extrabold hover:underline">
+            Masuk bersama BiBoo →
+          </Link>
         </p>
       </div>
     </div>

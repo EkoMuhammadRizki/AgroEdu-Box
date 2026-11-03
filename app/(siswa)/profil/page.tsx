@@ -1,24 +1,65 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
-import { currentStudent, mockModules, mockSubmissions, mockActivities } from "@/lib/mock-data";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { BibooMascot } from "@/components/agro/biboo-mascot";
+import { mockModules, mockSubmissions, mockActivities } from "@/lib/mock-data";
 import { ActivityList } from "@/components/agro/activity-list";
-import { User, BookOpen, ClipboardCheck, Star, Edit, ChevronRight, MessageSquare, Send } from "lucide-react";
+import {
+  User, BookOpen, ClipboardCheck, Star, Trophy, Award,
+  Send, ChevronRight, CheckCircle2, Sparkles, RefreshCw
+} from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { showSuccessAlert, showConfirmDialog, showToast } from "@/lib/swal";
 
 export default function ProfilPage() {
-  const [studentStatus, setStudentStatus] = useState("Aktif belajar");
+  const [studentName, setStudentName] = useState("Andi Pratama");
+  const [className, setClassName] = useState("Kelas 10A – Agribisnis");
+  const [classCode, setClassCode] = useState("AGRO10A");
+  const [character, setCharacter] = useState<"original" | "girl">("original");
+  const [stars, setStars] = useState(120);
   const [studentNote, setStudentNote] = useState("");
-  const completedModules = 2;
-  const totalModules = mockModules.filter((m) => m.status === "terbit").length;
-  const submittedMissions = mockSubmissions.length;
+  const [statusMessage, setStatusMessage] = useState("Sedang Eksperimen Sensor NFT");
 
-  const handleUpdateStatus = async () => {
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("agro_student_profile");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.name) setStudentName(parsed.name);
+        if (parsed.className) setClassName(parsed.className);
+        if (parsed.classCode) setClassCode(parsed.classCode);
+        if (parsed.character) setCharacter(parsed.character);
+        if (parsed.stars) setStars(parsed.stars);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleToggleCharacter = async () => {
+    const nextChar = character === "original" ? "girl" : "original";
+    setCharacter(nextChar);
+    try {
+      const stored = localStorage.getItem("agro_student_profile");
+      const current = stored ? JSON.parse(stored) : {};
+      current.character = nextChar;
+      localStorage.setItem("agro_student_profile", JSON.stringify(current));
+    } catch {
+      // ignore
+    }
+    showToast(`Karakter diganti menjadi BiBoo ${nextChar === "girl" ? "Girl" : "Original"}!`, "success", 1600);
+  };
+
+  const handleSendFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!studentNote.trim()) {
+      showToast("Tulis pesan atau pertanyaanmu terlebih dahulu.", "info");
+      return;
+    }
+
     const confirm = await showConfirmDialog({
       title: "Kirim Refleksi ke Guru?",
-      text: "Catatan atau pertanyaanmu akan dikirimkan langsung ke dashboard bimbingan Pak Eko.",
+      text: "Pertanyaan atau catatanmu akan langsung masuk ke dashboard AGRO EDU TRACK Pak Eko.",
       icon: "question",
       confirmButtonText: "Ya, Kirim Pesan",
       cancelButtonText: "Batal",
@@ -28,7 +69,7 @@ export default function ProfilPage() {
     if (confirm.isConfirmed) {
       setStudentNote("");
       await showSuccessAlert(
-        "Pesan Terkirim!",
+        "Pesan Terkirim! ✉️",
         "Refleksi belajarmu telah dikirimkan ke guru pembimbing.",
         1600
       );
@@ -38,195 +79,138 @@ export default function ProfilPage() {
   return (
     <AppShell role="siswa">
       <PageHeader
-        title="Profil & Perkembangan"
-        description="Pantau pencapaian silabus, riwayat kuis, dan umpan balik pembimbing."
+        title="Profil Petani Muda"
+        description="Pantau pencapaian bintang, sertifikat, riwayat kuis, dan bimbingan guru."
       />
 
-      <ContentWrapper className="space-y-4 pb-8">
-        {/* Identitas Siswa */}
-        <div className="card">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-siswa-100">
-                <User className="h-8 w-8 text-siswa-600" strokeWidth={1.5} />
+      <ContentWrapper className="space-y-6 pb-10">
+        {/* Profile Card Hero */}
+        <div className="card-cream flex flex-col md:flex-row items-center justify-between gap-6 p-6">
+          <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-3xl bg-white border-3 border-green-300 p-2 shadow-card flex items-center justify-center">
+                <BibooMascot mood="happy" size="lg" character={character} animated={true} />
               </div>
-              <div>
-                <p className="text-xl font-extrabold text-ink">{currentStudent.name}</p>
-                <p className="text-sm text-ink-muted mt-0.5">{currentStudent.classCode} · NIS: 2026-001</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="badge bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
-                    ✓ {studentStatus}
-                  </span>
-                  <span className="text-xs text-ink-muted">Semester Genap 2026</span>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={handleToggleCharacter}
+                className="absolute -bottom-2 -right-2 p-1.5 rounded-full bg-yellow-400 text-ink-900 border-2 border-white shadow-xs hover:scale-110 transition-transform cursor-pointer"
+                title="Ganti karakter BiBoo"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={async () => {
-                const newSt = studentStatus === "Aktif belajar" ? "Sedang Eksperimen Lab" : "Aktif belajar";
-                setStudentStatus(newSt);
-                await showToast(`Status belajar diperbarui menjadi: ${newSt}`, "success", 1400);
-              }}
-              className="btn-secondary text-xs gap-1.5 self-start sm:self-center cursor-pointer"
-            >
-              <Edit className="h-3.5 w-3.5" />
-              Ganti Status Belajar
-            </button>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <h2 className="font-heading font-extrabold text-2xl text-ink-900">{studentName}</h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-green-500 text-white text-[10px] font-heading font-extrabold">
+                  {character === "girl" ? "BiBoo Girl" : "BiBoo Ori"}
+                </span>
+              </div>
+              <p className="text-xs text-ink-600 font-bold">{className} (NIS: 2026-001)</p>
+              <div className="flex items-center gap-2 pt-1 justify-center sm:justify-start">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-pill bg-white border border-green-300 text-xs font-bold text-green-700">
+                  🌱 {statusMessage}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="p-3.5 rounded-2xl bg-white border-2 border-yellow-300 shadow-xs text-center min-w-[90px]">
+              <Star className="w-6 h-6 text-yellow-500 fill-yellow-400 mx-auto mb-1" />
+              <p className="font-heading font-extrabold text-xl text-ink-900 leading-tight">{stars}</p>
+              <p className="text-[10px] font-bold text-ink-600">Bintang</p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-white border-2 border-yellow-300 shadow-xs text-center min-w-[90px]">
+              <Trophy className="w-6 h-6 text-yellow-500 fill-yellow-400 mx-auto mb-1" />
+              <p className="font-heading font-extrabold text-xl text-ink-900 leading-tight">1</p>
+              <p className="text-[10px] font-bold text-ink-600">Piala IoT</p>
+            </div>
           </div>
         </div>
 
-        {/* Clickable Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        {/* 3 Clickable Stats Row */}
+        <div className="grid grid-cols-3 gap-3 md:gap-4">
           <Link
             href="/materi"
-            className="card text-center hover:border-siswa-600 hover:shadow-xs transition-all group block cursor-pointer"
-            title="Buka daftar materi"
+            className="card text-center p-4 hover:border-green-400 transition-all block group"
           >
-            <BookOpen className="h-5 w-5 text-siswa-600 mx-auto mb-2 group-hover:scale-110 transition-transform" strokeWidth={1.75} />
-            <p className="text-2xl font-extrabold text-ink tabular-nums">{completedModules}/{totalModules}</p>
-            <p className="text-[10px] text-ink-muted mt-1 group-hover:text-siswa-600">Modul Selesai →</p>
+            <BookOpen className="h-6 w-6 text-green-600 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <p className="font-heading font-extrabold text-2xl text-ink-900 tabular-nums">2 / {mockModules.length}</p>
+            <p className="text-xs font-heading font-bold text-ink-600 mt-1 group-hover:text-green-600">Modul Selesai →</p>
           </Link>
 
           <Link
             href="/misi"
-            className="card text-center hover:border-siswa-600 hover:shadow-xs transition-all group block cursor-pointer"
-            title="Buka daftar misi"
+            className="card text-center p-4 hover:border-green-400 transition-all block group"
           >
-            <ClipboardCheck className="h-5 w-5 text-siswa-600 mx-auto mb-2 group-hover:scale-110 transition-transform" strokeWidth={1.75} />
-            <p className="text-2xl font-extrabold text-ink tabular-nums">{submittedMissions}</p>
-            <p className="text-[10px] text-ink-muted mt-1 group-hover:text-siswa-600">Misi Terkirim →</p>
+            <ClipboardCheck className="h-6 w-6 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <p className="font-heading font-extrabold text-2xl text-ink-900 tabular-nums">{mockSubmissions.length}</p>
+            <p className="text-xs font-heading font-bold text-ink-600 mt-1 group-hover:text-blue-500">Misi Terkirim →</p>
           </Link>
 
           <Link
             href="/kuis"
-            className="card text-center hover:border-siswa-600 hover:shadow-xs transition-all group block cursor-pointer"
-            title="Buka daftar kuis"
+            className="card text-center p-4 hover:border-green-400 transition-all block group"
           >
-            <Star className="h-5 w-5 text-siswa-600 mx-auto mb-2 group-hover:scale-110 transition-transform" strokeWidth={1.75} />
-            <p className="text-2xl font-extrabold text-ink tabular-nums">80</p>
-            <p className="text-[10px] text-ink-muted mt-1 group-hover:text-siswa-600">Rata-Rata Kuis →</p>
+            <Award className="h-6 w-6 text-yellow-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <p className="font-heading font-extrabold text-2xl text-ink-900 tabular-nums">80%</p>
+            <p className="text-xs font-heading font-bold text-ink-600 mt-1 group-hover:text-yellow-600">Rata-Rata Kuis →</p>
           </Link>
         </div>
 
-        {/* Progress Modul — Clickable to detail */}
-        <div className="card">
-          <div className="panel-header -mx-4 -mt-4 md:-mx-5 md:-mt-5 mb-4 rounded-t-card flex items-center justify-between">
-            <span>PROGRESS MODUL PEMBELAJARAN</span>
-            <Link href="/materi" className="text-[10px] font-normal normal-case hover:underline">
-              Semua Materi →
-            </Link>
+        {/* Umpan Balik Guru & Pesan Balasan */}
+        <div className="card space-y-4">
+          <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-1">
+            BIMBINGAN & UMPAN BALIK GURU
           </div>
-          <div className="space-y-3">
-            {mockModules.filter((m) => m.status === "terbit").map((mod, i) => {
-              const p = i === 0 ? 100 : i === 1 ? 100 : 30;
-              return (
-                <Link
-                  key={mod.id}
-                  href={`/materi/${mod.slug}`}
-                  className="block p-2 rounded-xl hover:bg-surface-muted transition-colors group cursor-pointer"
-                >
-                  <div className="flex justify-between items-center text-xs mb-1.5">
-                    <span className="text-ink font-semibold group-hover:text-[var(--accent)] transition-colors">
-                      {mod.title}
-                    </span>
-                    <span className="text-ink-muted tabular-nums flex items-center gap-1 font-mono">
-                      {p}%
-                      <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-line overflow-hidden">
-                    <div className="h-full rounded-full bg-[var(--accent)] transition-all" style={{ width: `${p}%` }} />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Riwayat Kuis — Clickable */}
-        <div className="card">
-          <div className="panel-header -mx-4 -mt-4 md:-mx-5 md:-mt-5 mb-4 rounded-t-card flex items-center justify-between">
-            <span>RIWAYAT KUIS & EVALUASI</span>
-            <Link href="/kuis" className="text-[10px] font-normal normal-case hover:underline">
-              Buka Kuis →
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {[
-              { id: "quiz-1", quiz: "Kuis: Sensor IoT dalam Pertanian", score: 80, date: "16 Okt 2026" },
-              { id: "quiz-2", quiz: "Kuis: Mengenal Hidroponik", score: 90, date: "10 Okt 2026" },
-            ].map((item) => (
-              <Link
-                key={item.quiz}
-                href={`/kuis/${item.id}`}
-                className="flex items-center justify-between p-3 rounded-xl bg-surface-muted hover:bg-siswa-100/40 transition-colors group cursor-pointer"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-ink group-hover:text-siswa-700 transition-colors">
-                    {item.quiz}
-                  </p>
-                  <p className="text-xs text-ink-muted">{item.date} · Klik untuk lihat ulasan soal</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-lg font-extrabold tabular-nums ${item.score >= 80 ? "text-siswa-600" : "text-[#8A5A00]"}`}>
-                    {item.score}
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-ink-muted group-hover:text-siswa-600" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Komentar Guru & Kirim Balasan */}
-        <div className="card space-y-3">
-          <div className="panel-header -mx-4 -mt-4 md:-mx-5 md:-mt-5 mb-2 rounded-t-card">
-            UMPAN BALIK DARI GURU
-          </div>
-          <div className="flex gap-3 p-3.5 rounded-xl bg-guru-100/50 border border-guru-100">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-guru-100">
-              <User className="h-4 w-4 text-guru-600" strokeWidth={1.75} />
+          <div className="p-4 rounded-2xl bg-blue-50 border-2 border-blue-200 flex gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-blue-500 text-white flex items-center justify-center font-heading font-extrabold text-base flex-shrink-0">
+              E
             </div>
-            <div className="flex-1">
-              <p className="text-xs font-semibold text-guru-600 mb-0.5">Pak Eko Mulyadi · 16 Okt 2026</p>
-              <p className="text-sm text-ink leading-relaxed">
-                "Pengamatan visual kangkungmu sudah sangat cermat, Andi! Coba tautkan lebih banyak rentang jam data sensor suhu saat menyimpulkan laju transpirasi tanaman."
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-heading font-extrabold text-xs text-blue-900">Pak Eko Mulyadi (Guru Pembimbing)</span>
+                <span className="text-[10px] text-ink-600 font-bold">16 Okt 2026</span>
+              </div>
+              <p className="text-xs md:text-sm text-ink-900 leading-relaxed">
+                "Pengamatan visual kangkungmu pada Misi #1 sangat cermat, Andi! Nilai kelembapan media 45% cocok dengan fase pertumbuhannya. Pertahankan konsistensi pencatatan waktu pembacaan ya!"
               </p>
             </div>
           </div>
 
           {/* Form Balasan Siswa */}
-          <div className="pt-2">
-            <label htmlFor="refleksi" className="text-xs font-bold text-ink block mb-1">
-              Kirim Pertanyaan / Refleksi Balasan ke Guru:
+          <form onSubmit={handleSendFeedback} className="pt-1 space-y-2">
+            <label htmlFor="student-reply" className="font-heading font-bold text-xs text-ink-900 block">
+              Kirim Pertanyaan / Refleksi Balasan ke Pak Eko:
             </label>
             <div className="flex gap-2">
               <input
-                id="refleksi"
+                id="student-reply"
                 type="text"
                 value={studentNote}
                 onChange={(e) => setStudentNote(e.target.value)}
-                placeholder="Tulis pesan atau pertanyaan untuk Pak Eko..."
-                className="input-field text-xs flex-1"
+                placeholder="Tulis pesan atau pertanyaan lanjutan..."
+                className="input-field text-xs flex-1 h-11"
               />
               <button
-                type="button"
-                onClick={handleUpdateStatus}
-                className="btn-primary text-xs px-4 gap-1.5 flex-shrink-0 cursor-pointer inline-flex items-center"
+                type="submit"
+                className="btn-primary text-xs px-5 h-11 gap-1.5 flex-shrink-0 inline-flex items-center cursor-pointer"
               >
-                <Send className="h-3.5 w-3.5" />
+                <Send className="w-4 h-4" />
                 Kirim
               </button>
             </div>
-          </div>
+          </form>
         </div>
 
-        {/* Aktivitas Terbaru */}
-        <div className="card">
-          <div className="panel-header -mx-4 -mt-4 md:-mx-5 md:-mt-5 mb-4 rounded-t-card">
-            RIWAYAT AKTIVITAS
+        {/* Riwayat Aktivitas Belajar */}
+        <div className="card space-y-3">
+          <div className="panel-header -mx-5 -mt-5 md:-mx-6 md:-mt-6 mb-1">
+            LOG AKTIVITAS BELAJAR SISWA
           </div>
           <ActivityList activities={mockActivities} />
         </div>

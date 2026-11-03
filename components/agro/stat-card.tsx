@@ -12,42 +12,57 @@ interface StatCardProps {
   updatedAt?: string;
   icon?: ReactNode;
   offline?: boolean;
+  colorScheme?: "green" | "blue" | "orange" | "yellow";
 }
 
-export function StatCard({ label, value, unit, status, updatedAt, icon, offline }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  unit,
+  status,
+  updatedAt,
+  icon,
+  offline,
+  colorScheme = "green",
+}: StatCardProps) {
   const displayValue = offline ? "—" : value;
 
+  const bgStyles = {
+    green: "bg-green-100/60 border-green-200 text-green-700",
+    blue: "bg-blue-200/50 border-blue-200 text-blue-500",
+    orange: "bg-orange-400/15 border-orange-400/30 text-orange-400",
+    yellow: "bg-yellow-300/30 border-yellow-300/50 text-yellow-500",
+  };
+
   return (
-    <div className="card card-hover flex flex-col gap-2">
+    <div className="card card-hover flex flex-col justify-between gap-3 p-4 md:p-5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-ink-muted">{label}</span>
+        <span className="text-xs font-heading font-bold text-ink-600">{label}</span>
         {icon && (
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-soft text-[var(--accent)]">
+          <span className={`flex h-9 w-9 items-center justify-center rounded-2xl border ${bgStyles[colorScheme]}`}>
             {icon}
           </span>
         )}
       </div>
 
-      <div className="flex items-baseline gap-1">
-        <span className={`text-2xl font-bold tabular-nums ${offline ? "text-ink-muted" : "text-[var(--accent)]"}`}>
+      <div className="flex items-baseline gap-1 my-0.5">
+        <span className={`text-3xl font-heading font-extrabold tabular-nums ${offline ? "text-ink-300" : "text-ink-900"}`}>
           {displayValue}
         </span>
         {!offline && unit && (
-          <span className="text-sm font-medium text-ink-muted">{unit}</span>
+          <span className="text-sm font-heading font-bold text-ink-600">{unit}</span>
         )}
       </div>
 
-      {offline && (
-        <p className="text-xs text-ink-muted">
-          {updatedAt ? `Data terakhir: ${formatTimeAgo(updatedAt)}` : "Belum ada data dari perangkat."}
+      {offline ? (
+        <p className="text-[11px] text-ink-600">
+          {updatedAt ? `Data terakhir: ${formatTimeAgo(updatedAt)}` : "Belum ada data dari sensor."}
         </p>
-      )}
-
-      {!offline && (status || updatedAt) && (
-        <div className="flex items-center gap-2 flex-wrap">
+      ) : (
+        <div className="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-line/60">
           {status && <StatusBadge status={status} />}
           {updatedAt && (
-            <span className="text-xs text-ink-muted">diperbarui {formatTimeAgo(updatedAt)}</span>
+            <span className="text-[10px] text-ink-600 font-medium">{formatTimeAgo(updatedAt)}</span>
           )}
         </div>
       )}
@@ -64,16 +79,16 @@ interface GuruStatCardProps {
 
 export function GuruStatCard({ label, value, highlight, icon }: GuruStatCardProps) {
   return (
-    <div className={`card card-hover flex flex-col gap-2 ${highlight ? "border-[var(--accent)] bg-accent-soft" : ""}`}>
+    <div className={`card card-hover flex flex-col gap-2 ${highlight ? "bg-green-100 border-green-400" : ""}`}>
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-ink-muted">{label}</span>
+        <span className="text-xs font-heading font-bold text-ink-600">{label}</span>
         {icon && (
-          <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${highlight ? "bg-[var(--accent)] text-white" : "bg-surface-muted text-ink-muted"}`}>
+          <span className={`flex h-9 w-9 items-center justify-center rounded-2xl ${highlight ? "bg-green-500 text-white" : "bg-green-100 text-green-700"}`}>
             {icon}
           </span>
         )}
       </div>
-      <span className={`text-3xl font-extrabold tabular-nums ${highlight ? "text-[var(--accent)]" : "text-ink"}`}>
+      <span className={`text-3xl font-heading font-extrabold tabular-nums ${highlight ? "text-green-700" : "text-ink-900"}`}>
         {value}
       </span>
     </div>

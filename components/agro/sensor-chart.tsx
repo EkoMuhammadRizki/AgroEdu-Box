@@ -1,7 +1,7 @@
 "use client";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
+  Tooltip, ResponsiveContainer
 } from "recharts";
 import { SensorHistoryPoint } from "@/lib/types";
 import { useState } from "react";
@@ -18,32 +18,32 @@ interface SensorChartProps {
   isSimulation?: boolean;
 }
 
-export function SensorChart({ data, unit, color = "var(--accent)", label, isSimulation }: SensorChartProps) {
+export function SensorChart({ data, unit, color = "#6CC04A", label, isSimulation }: SensorChartProps) {
   const [range, setRange] = useState<Range>("24 jam");
 
-  // Filter data based on range (mock — just slice)
   const slicedData = range === "24 jam" ? data.slice(-24) : range === "7 hari" ? data.slice(-7 * 24) : data;
 
   return (
-    <div className="card">
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <div className="card space-y-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-bold text-ink">{label}</h3>
+          <h3 className="font-heading font-extrabold text-sm md:text-base text-ink-900">{label}</h3>
           {isSimulation && (
             <StatusBadge status="simulasi" />
           )}
         </div>
 
-        {/* Range segmented control */}
-        <div className="flex gap-1 rounded-xl bg-surface-muted border border-line p-1">
+        {/* Range control */}
+        <div className="flex gap-1 rounded-pill bg-green-100 p-1 border border-green-200">
           {RANGES.map((r) => (
             <button
               key={r}
+              type="button"
               onClick={() => setRange(r)}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-150 ${
+              className={`px-3 py-1 rounded-pill text-xs font-heading font-bold transition-all ${
                 range === r
-                  ? "bg-surface shadow-sm text-[var(--accent)] font-semibold"
-                  : "text-ink-muted hover:text-ink"
+                  ? "bg-white shadow-xs text-green-700"
+                  : "text-ink-600 hover:text-ink-900"
               }`}
             >
               {r}
@@ -52,41 +52,51 @@ export function SensorChart({ data, unit, color = "var(--accent)", label, isSimu
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={slicedData} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#DCE5DF" vertical={false} />
-          <XAxis
-            dataKey="time"
-            tick={{ fontSize: 10, fill: "#5F7068" }}
-            tickLine={false}
-            axisLine={false}
-            interval="preserveStartEnd"
-          />
-          <YAxis
-            tick={{ fontSize: 10, fill: "#5F7068" }}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={(v) => `${v}${unit}`}
-          />
-          <Tooltip
-            contentStyle={{ borderRadius: 10, border: "1px solid #DCE5DF", fontSize: 12 }}
-            formatter={(val) => [`${val}${unit}`, label]}
-            labelStyle={{ color: "#5F7068" }}
-          />
-          <Line
-            type="monotone"
-            dataKey="value"
-            stroke={color}
-            strokeWidth={2}
-            dot={false}
-            activeDot={{ r: 4, strokeWidth: 0 }}
-            connectNulls={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div className="h-[210px] w-full pt-1">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={slicedData} margin={{ top: 8, right: 12, bottom: 0, left: -16 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#DCEECC" vertical={false} />
+            <XAxis
+              dataKey="time"
+              tick={{ fontSize: 10, fill: "#5B6B45" }}
+              tickLine={false}
+              axisLine={false}
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              tick={{ fontSize: 10, fill: "#5B6B45" }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v) => `${v}${unit}`}
+            />
+            <Tooltip
+              contentStyle={{
+                borderRadius: 16,
+                border: "2px solid #CDEBB0",
+                fontSize: 12,
+                backgroundColor: "#FFFBEA",
+                fontFamily: "var(--font-heading)",
+                fontWeight: 700,
+                color: "#2F3B1F",
+              }}
+              formatter={(val) => [`${val}${unit}`, label]}
+              labelStyle={{ color: "#5B6B45" }}
+            />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke={color}
+              strokeWidth={3}
+              dot={{ r: 2, fill: color }}
+              activeDot={{ r: 5, strokeWidth: 0, fill: color }}
+              connectNulls={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
 
-      <p className="mt-2 text-[10px] text-ink-muted">
-        Garis terputus = data tidak tersedia. Nilai ditampilkan sesuai data aktual.
+      <p className="text-[10px] text-ink-600 font-medium">
+        * Garis terputus menandakan periode di mana perangkat IoT dalam mode sleep/offline.
       </p>
     </div>
   );

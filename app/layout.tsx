@@ -1,19 +1,27 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({
+const baloo = Baloo_2({
   subsets: ["latin"],
-  variable: "--font-jakarta",
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["600", "700", "800"],
+  variable: "--font-heading",
+  display: "swap",
+});
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
+  variable: "--font-body",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "AGRO EDU BOX",
-    template: "%s | AGRO EDU BOX",
+    default: "Agro-Edu BiBoo | AGRO EDU BOX",
+    template: "%s | Agro-Edu BiBoo",
   },
-  description: "Platform pembelajaran agrikultur berbasis IoT untuk siswa dan guru.",
+  description: "Platform pembelajaran agrikultur & IoT ceria untuk anak dan remaja bersama BiBoo.",
 };
 
 export default function RootLayout({
@@ -22,8 +30,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className={jakarta.variable}>
-      <body className="min-h-dvh bg-bg font-sans antialiased">
+    <html lang="id" className={`${baloo.variable} ${nunito.variable}`}>
+      <body className="min-h-dvh bg-[#F3F9EC] text-[#2F3B1F] font-body antialiased selection:bg-[#CDEBB0] selection:text-[#2F3B1F]">
         {children}
       </body>
     </html>
