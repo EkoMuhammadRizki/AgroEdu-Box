@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ingestTelemetryData, getStore } from "@/lib/iot-store";
 
 export async function POST(request: Request) {
   try {
@@ -26,26 +27,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const { deviceId, readings, firmwareVersion, measuredAt } = body;
-    const receivedAt = new Date().toISOString();
-
-    // Validasi format tiap reading
-    const processedReadings = readings.map((r: any) => ({
-      sensorType: r.sensorType,
-      value: typeof r.value === "number" ? r.value : parseFloat(r.value),
-      unit: r.unit || "",
-      valid: r.valid !== false,
-      measuredAt: r.measuredAt || measuredAt || receivedAt,
-      receivedAt,
-    }));
+    const result = ingestTelemetryData({
+      deviceId: String(body.deviceId),
+      firmwareVersion: body.firmwareVersion,
+      measuredAt: body.measuredAt,
+      readings: body.readings,
+    });
 
     return NextResponse.json({
       success: true,
-      deviceId,
-      receivedAt,
-      firmwareVersion: firmwareVersion || "unknown",
-      readingsProcessed: processedReadings.length,
-      status: "acknowledged",
+      deviceId: result.deviceId,
+      receivedAt: result.receivedAt,
+      readingsProcessed: result.readingsProcessed,
+      status: "recorded",
+      message: "Data sensor Arduino berhasil dicatat ke sistem telemetri.",
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -59,10 +54,32 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
+  const store = getStore();
   return NextResponse.json({
     status: "online",
     service: "AGRO EDU BOX IoT Telemetry Ingest API",
-    version: "1.0.0",
-    docs: "Kirim data menggunakan HTTP POST dengan JSON payload { deviceId, readings: [...] }",
+    version: "1.1.0",
+    lastIngestTime: store.lastIngestTime || "Belum ada pengiriman sejak server restart",
+    totalPacketsReceived: store.totalPacketsReceived,
+    registeredDevices: store.devices.map((d) => ({
+      id: d.id,
+      name: d.name,
+      status: d.status,
+      lastDataAt: d.lastDataAt,
+      sensorCount: d.sensors.length,
+    })),
+    docs: {
+      method: "POST",
+      endpoint: "/api/iot/ingest",
+      headers: { "Content-Type": "application/json" },
+      examplePayload: {
+        deviceId: "device-1",
+        readings: [
+          { sensorType: "soil_moisture", value: 45.0, unit: "%" },
+          { sensorType: "air_temp", value: 28.5, unit: "°C" },
+          { sensorType: "air_humidity", value: 62.0, unit: "%" },
+        ],
+      },
+    },
   });
 }

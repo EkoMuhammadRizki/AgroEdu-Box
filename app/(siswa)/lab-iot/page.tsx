@@ -30,6 +30,8 @@ interface ObservationNote {
 const EXAMPLE_NOTE = "Pukul 09.30 WIB — Daun ke-4 mulai tumbuh hijau cerah, media cocopeat terasa lembap gembur. Suhu 28.4°C dan kelembapan 62% terpantau optimal untuk fase vegetatif.";
 
 export default function LabIotPage() {
+  const [devices, setDevices] = useState(mockDevices);
+  const [history, setHistory] = useState<Record<string, { time: string; value: number | null }[]>>(mockSensorHistory);
   const [selectedDeviceId, setSelectedDeviceId] = useState(mockDevices[0].id);
   const [noteText, setNoteText] = useState("");
   const [savedNotes, setSavedNotes] = useState<ObservationNote[]>([
@@ -50,9 +52,30 @@ export default function LabIotPage() {
     } catch {
       // ignore
     }
+
+    const fetchLiveData = async () => {
+      try {
+        const res = await fetch("/api/iot/data");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.devices && json.devices.length > 0) {
+            setDevices(json.devices);
+          }
+          if (json.history) {
+            setHistory(json.history);
+          }
+        }
+      } catch {
+        // fallback
+      }
+    };
+
+    fetchLiveData();
+    const interval = setInterval(fetchLiveData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  const device = mockDevices.find((d) => d.id === selectedDeviceId) || mockDevices[0];
+  const device = devices.find((d) => d.id === selectedDeviceId) || devices[0];
   const isOffline = device.status === "offline" || device.sensors.length === 0;
 
   const handleSaveNote = async () => {
@@ -127,7 +150,7 @@ export default function LabIotPage() {
       <ContentWrapper className="space-y-6 pb-10">
         {/* Device Selector Segment */}
         <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-thin">
-          {mockDevices.map((d) => {
+          {devices.map((d) => {
             const isSelected = d.id === selectedDeviceId;
             return (
               <button
@@ -224,13 +247,13 @@ export default function LabIotPage() {
             {/* Interactive Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <SensorChart
-                data={mockSensorHistory["s1-temp"]}
+                data={history["s1-temp"] || history[`${device.id}-air_temp`] || []}
                 unit="°C"
                 color="#F59A3B"
                 label="Riwayat Suhu Udara (DHT22)"
               />
               <SensorChart
-                data={mockSensorHistory["s1-soil"]}
+                data={history["s1-soil"] || history[`${device.id}-soil_moisture`] || []}
                 unit="%"
                 color="#3F9B2E"
                 label="Riwayat Kelembapan Tanah (A0)"

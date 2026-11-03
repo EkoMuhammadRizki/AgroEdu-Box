@@ -17,6 +17,7 @@ import { showToast } from "@/lib/swal";
 export default function BerandaSiswaPage() {
   const [studentName, setStudentName] = useState("Andi");
   const [character, setCharacter] = useState<"original" | "girl">("original");
+  const [device, setDevice] = useState(mockDevices[0]);
   const [completedDaily, setCompletedDaily] = useState<Record<string, boolean>>({
     "misi-daily-1": true,
     "misi-daily-2": false,
@@ -33,9 +34,26 @@ export default function BerandaSiswaPage() {
     } catch {
       // ignore
     }
+
+    const fetchLiveData = async () => {
+      try {
+        const res = await fetch("/api/iot/data?deviceId=device-1");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.device) {
+            setDevice(json.device);
+          }
+        }
+      } catch {
+        // fallback
+      }
+    };
+
+    fetchLiveData();
+    const interval = setInterval(fetchLiveData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  const device = mockDevices[0]; // Box 1 – Kangkung (online)
   const isOffline = device.status === "offline";
 
   const toggleDailyMission = (id: string, title: string) => {

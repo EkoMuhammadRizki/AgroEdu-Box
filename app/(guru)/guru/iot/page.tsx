@@ -8,7 +8,7 @@ import {
   WifiOff, Clock, Database, Settings, ArrowUpRight, Thermometer, Droplets, Sun, Activity
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { showToast } from "@/lib/swal";
 
 export default function GuruIotMonitoringPage() {
@@ -16,13 +16,32 @@ export default function GuruIotMonitoringPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedBox, setSelectedBox] = useState(devices[0].id);
 
+  const fetchLiveData = async () => {
+    try {
+      const res = await fetch("/api/iot/data");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.devices && json.devices.length > 0) {
+          setDevices(json.devices);
+        }
+      }
+    } catch {
+      // fallback
+    }
+  };
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(async () => {
-      setIsRefreshing(false);
-      await showToast("Data telemetri ESP32 berhasil disinkronkan!", "success", 1600);
-    }, 600);
+    await fetchLiveData();
+    setIsRefreshing(false);
+    await showToast("Data telemetri ESP32 berhasil disinkronkan!", "success", 1600);
   };
+
+  useEffect(() => {
+    fetchLiveData();
+    const interval = setInterval(fetchLiveData, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const activeDevice = devices.find((d) => d.id === selectedBox) || devices[0];
 
