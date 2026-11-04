@@ -22,6 +22,8 @@ export interface GuruSiswa {
   kelompokId: string | null;
   nama: string;
   bintang: number;
+  /** Hasil Kuis Pintar; null bila belum pernah mengerjakan. */
+  kuis: { terbaik: number; terakhir: number; percobaan: number } | null;
 }
 
 export interface GuruLaporan {

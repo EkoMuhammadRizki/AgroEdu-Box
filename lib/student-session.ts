@@ -1,3 +1,4 @@
+import type { QuizSubmitResult } from "./quiz";
 export type StudentCharacter = "original" | "girl";
 
 export interface StudentProfile {
@@ -55,6 +56,26 @@ export async function addStudentStars(amount: number) {
   const bintang = res?.ok ? (await res.json()).bintang : undefined;
   const latest = getStudentProfile();
   if (latest && typeof bintang === "number") saveStudentProfile({ ...latest, stars: bintang });
+}
+
+/** Kirim jawaban kuis; skor dan bintang dihitung server. Null bila gagal terkirim. */
+export async function submitQuiz(kuisId: string, jawaban: number[]): Promise<QuizSubmitResult | null> {
+  const profile = getStudentProfile();
+  if (!profile) return null;
+  try {
+    const res = await fetch("/api/siswa/kuis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ siswaId: profile.id, kuisId, jawaban }),
+    });
+    if (!res.ok) return null;
+    const result = (await res.json()) as QuizSubmitResult;
+    const latest = getStudentProfile();
+    if (latest && typeof result.bintang === "number") saveStudentProfile({ ...latest, stars: result.bintang });
+    return result;
+  } catch {
+    return null;
+  }
 }
 
 export function logoutStudent() {

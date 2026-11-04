@@ -25,7 +25,7 @@ export default function KuisListPage() {
     <AppShell role="siswa">
       <PageHeader
         title="Portal Kuis Agro-Pintar"
-        description="Uji pemahaman teorimu dan interpretasi data sensor bersama Situnas!"
+        description="Uji pemahamanmu tentang tanah, kelembapan, dan suhu udara bersama Situnas!"
       />
 
       <ContentWrapper className="space-y-6 pb-8">
@@ -39,7 +39,7 @@ export default function KuisListPage() {
               Gerbang Tantangan Petani Muda IoT! 🌟
             </h2>
             <p className="text-xs sm:text-sm text-ink-600 max-w-md">
-              Jawab soal pilihan ganda interaktif, raih skor 100%, klaim bintang berharga, dan dapatkan <strong>Sertifikat Resmi Petani Muda</strong>!
+              Jawab 10 soal pilihan ganda, raih skor 80 atau lebih, klaim bintang, dan dapatkan <strong>Sertifikat Petani Muda</strong>!
             </p>
             <div className="pt-2">
               <Link href="/kuis/quiz-1" className="btn-secondary text-xs h-10 px-5 sm:px-6 gap-2 inline-flex items-center shadow-btn-yellow">
@@ -94,7 +94,7 @@ export default function KuisListPage() {
                     </div>
 
                     <p className="text-xs text-ink-600 leading-relaxed">
-                      Mencakup pemahaman fungsi mikrokontroler ESP32, kalibrasi kelembapan tanah, suhu udara DHT22, dan interpretasi timestamp data.
+                      Mencakup biotik dan abiotik, tanah tandus, kelembapan tanah, variabel percobaan, membaca sensor IoT, dan kompos.
                     </p>
                   </div>
 

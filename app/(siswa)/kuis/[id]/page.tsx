@@ -10,7 +10,8 @@ import {
   Check, X, RefreshCw, Printer, Maximize2, ArrowRight
 } from "lucide-react";
 import { showSuccessAlert, showWarningAlert, showConfirmDialog, showToast } from "@/lib/swal";
-import { addStudentStars } from "@/lib/student-session";
+import { submitQuiz } from "@/lib/student-session";
+import { QUIZ_PASS_SCORE, type QuizSubmitResult } from "@/lib/quiz";
 import { BrandIcon } from "@/components/agro/brand-logo";
 import Link from "next/link";
 
@@ -26,9 +27,26 @@ export default function KuisPage() {
   const [submitted, setSubmitted] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [showClassroomMode, setShowClassroomMode] = useState(false);
-  const [studentName, setStudentName] = useState("Andi Pratama");
-  const [className, setClassName] = useState("Kelas 10A – Agribisnis");
+  const [studentName, setStudentName] = useState("Petani Muda");
+  const [className, setClassName] = useState("");
   const [character, setCharacter] = useState<"original" | "girl">("original");
+  const [result, setResult] = useState<QuizSubmitResult | null>(null);
+  const [saving, setSaving] = useState(false);
+  // Urutan pilihan diacak tiap percobaan (di browser, setelah muat, agar tidak beda dengan server).
+  const [order, setOrder] = useState<number[][] | null>(null);
+  const shuffleOrder = () =>
+    quiz.questions.map((q) => {
+      const idx = q.options.map((_, i) => i);
+      for (let i = idx.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [idx[i], idx[j]] = [idx[j], idx[i]];
+      }
+      return idx;
+    });
+  useEffect(() => {
+    setOrder(shuffleOrder());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quiz.id]);
 
   useEffect(() => {
     try {
@@ -75,23 +93,22 @@ export default function KuisPage() {
     if (confirm.isConfirmed) {
       const correctCount = quiz.questions.filter((q) => answers[q.id] === q.correctIndex).length;
       const calculatedScore = Math.round((correctCount / total) * 100);
+      setSaving(true);
+      // Server menghitung ulang skor dan memberi bintang hanya pada percobaan pertama.
+      const saved = await submitQuiz(quiz.id, quiz.questions.map((q) => answers[q.id]));
+      setSaving(false);
+      setResult(saved);
       setSubmitted(true);
 
-      // Add stars reward to session
-      addStudentStars(calculatedScore >= 80 ? 50 : 30);
-
-      if (calculatedScore >= 80) {
-        await showSuccessAlert(
-          "Luar Biasa! 🎉",
-          `Skormu ${calculatedScore}/100! Kamu berhak mengklaim Sertifikat Petani Muda IoT!`,
-          1800
-        );
+      const note = !saved
+        ? " Hasilnya belum tersimpan karena koneksi bermasalah, jadi bintang belum bertambah."
+        : saved.bintangDiberikan > 0
+          ? ` Kamu mendapat +${saved.bintangDiberikan} bintang!`
+          : " Bintang hanya diberikan pada percobaan pertama.";
+      if (calculatedScore >= QUIZ_PASS_SCORE) {
+        await showSuccessAlert("Luar Biasa! 🎉", `Skormu ${calculatedScore}/100! Kamu berhak mengklaim Sertifikat Petani Muda.${note}`, 2400);
       } else {
-        await showSuccessAlert(
-          "Kuis Selesai! 👍",
-          `Skor kamu ${calculatedScore}/100. Pelajari kembali pembahasannya untuk menambah pemahaman.`,
-          1800
-        );
+        await showSuccessAlert("Kuis Selesai! 👍", `Skor kamu ${calculatedScore}/100. Pelajari lagi pembahasannya.${note}`, 2400);
       }
     }
   };
@@ -138,10 +155,17 @@ export default function KuisPage() {
                 Selamat, <span className="text-green-600">{studentName}!</span>
               </h2>
               <p className="font-heading font-bold text-sm sm:text-base md:text-lg text-brown-600">
-                Pencapaian: Petani Muda IoT · Skor {score}%
+                Skor {score}%
               </p>
               <p className="text-xs text-ink-600 font-medium">
                 {correct} dari {total} pertanyaan berhasil dijawab dengan benar!
+              </p>
+              <p className="text-xs font-bold text-brown-600">
+                {!result
+                  ? "Hasil belum tersimpan (koneksi bermasalah)."
+                  : result.bintangDiberikan > 0
+                    ? `+${result.bintangDiberikan} bintang masuk ke akunmu!`
+                    : "Bintang hanya diberikan pada percobaan pertama."}
               </p>
             </div>
 
@@ -150,21 +174,21 @@ export default function KuisPage() {
               mood="trophy"
               size="md"
               character={character}
-              bubbleText={score >= 80 ? "Hebat banget! Kamu calon ahli IoT!" : "Keren! Yuk belajar lagi biar makin jago!"}
+              bubbleText={score >= QUIZ_PASS_SCORE ? "Hebat banget! Kamu calon petani muda!" : "Yuk baca materinya lagi, lalu coba lagi!"}
               className="mx-auto my-1 sm:my-2"
             />
 
             {/* ── 3 TOMBOL BERTUMPUK DARI DESIGN 2.md (Section 5.11) ────────── */}
             <div className="max-w-md mx-auto space-y-2.5 sm:space-y-3 pt-2">
-              {/* 1. Klaim Sertifikat (Hijau) */}
-              <button
+              {/* 1. Klaim Sertifikat (Hijau), hanya untuk skor 80 ke atas */}
+              {score >= QUIZ_PASS_SCORE && (<button
                 type="button"
                 onClick={() => setShowCertificateModal(true)}
                 className="btn-primary w-full text-xs sm:text-base h-11 sm:h-13 gap-2 inline-flex items-center justify-center cursor-pointer"
               >
                 <Award className="w-4 h-4 sm:w-5 sm:h-5" />
                 Klaim Sertifikat Digital!
-              </button>
+              </button>)}
 
               {/* 2. Tantangan Berikutnya (Kuning) */}
               <Link
@@ -240,6 +264,8 @@ export default function KuisPage() {
                   setSubmitted(false);
                   setCurrent(0);
                   setAnswers({});
+                  setResult(null);
+                  setOrder(shuffleOrder());
                 }}
                 className="btn-ghost w-full gap-2 inline-flex items-center justify-center cursor-pointer"
               >
@@ -287,7 +313,7 @@ export default function KuisPage() {
                 </div>
 
                 <p className="text-xs md:text-sm text-ink-700 max-w-lg mx-auto leading-relaxed">
-                  Telah berhasil menyelesaikan pembelajaran praktikum agrikultur cerdas, memverifikasi data sensor tanah & mikroklimat, serta lulus evaluasi <strong>Kuis Agro-Pintar IoT</strong> dengan predikat <strong>Sangat Memuaskan</strong>.
+                  Telah berhasil menyelesaikan pembelajaran praktikum agrikultur cerdas, mempelajari rahasia tanah dan suhu udara, serta lulus <strong>Kuis Pintar Agro-Edu Box</strong> dengan skor <strong>{score}</strong>.
                 </p>
 
                 {/* Signatures & Seal */}
@@ -302,9 +328,8 @@ export default function KuisPage() {
 
                   <div>
                     <p className="text-ink-600">Guru Pembimbing:</p>
-                    <p className="font-bold text-ink-900">Pak Eko Mulyadi, S.Pd</p>
-                    <div className="mt-4 pt-1 border-t border-ink-300 font-heading font-bold text-ink-900">
-                      NIP. 19850412 201001 1 008
+                    <div className="mt-8 pt-1 border-t border-ink-300 font-heading font-bold text-ink-900">
+                      Guru Kelas
                     </div>
                   </div>
                 </div>
@@ -366,7 +391,7 @@ export default function KuisPage() {
                   🎉 {studentName} 🎉
                 </h2>
                 <p className="font-heading font-bold text-2xl md:text-3xl text-white/90">
-                  Berhasil Menuntaskan Kuis IoT dengan Skor {score}%!
+                  Berhasil Menuntaskan Kuis Pintar dengan Skor {score}%!
                 </p>
                 <p className="text-lg text-green-300 font-medium">
                   {className} · Siap Lanjut ke Misi Pemantauan Lapangan
@@ -435,15 +460,17 @@ export default function KuisPage() {
 
         {/* ── PILIHAN JAWABAN (DESIGN 2.md Section 5.10) ────────────────── */}
         <div className="space-y-2.5 sm:space-y-3">
-          {question.options.map((option, idx) => {
+          {(order?.[current] ?? []).map((idx, pos) => {
+            const option = question.options[idx];
             const isSelected = answers[question.id] === idx;
-            const letter = String.fromCharCode(65 + idx);
-            const letterStyle = optionLetterStyles[idx % optionLetterStyles.length];
+            const letter = String.fromCharCode(65 + pos);
+            const letterStyle = optionLetterStyles[pos % optionLetterStyles.length];
 
             return (
               <button
                 key={idx}
                 type="button"
+                disabled={saving}
                 onClick={() => handleAnswer(idx)}
                 className={`w-full text-left p-3 sm:p-4 rounded-2xl border-3 flex items-center gap-2.5 sm:gap-3.5 transition-all cursor-pointer ${
                   isSelected

@@ -35,7 +35,7 @@ export default function DetailPerkembanganSiswaPage() {
 
         {data && siswa && (
           <>
-            <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
               <div className="card">
                 <p className="text-xl font-extrabold text-ink">{siswa.bintang}</p>
                 <p className="text-[11px] text-ink-muted">Bintang</p>
@@ -43,6 +43,12 @@ export default function DetailPerkembanganSiswaPage() {
               <div className="card">
                 <p className="text-xl font-extrabold text-ink">{laporan.length}/4</p>
                 <p className="text-[11px] text-ink-muted">Kartu Selesai</p>
+              </div>
+              <div className="card">
+                <p className="text-xl font-extrabold text-ink">{siswa.kuis ? siswa.kuis.terbaik : "-"}</p>
+                <p className="text-[11px] text-ink-muted">
+                  Nilai Kuis Terbaik{siswa.kuis ? ` (${siswa.kuis.percobaan}x coba)` : ""}
+                </p>
               </div>
               <div className="card">
                 <p className="text-sm font-extrabold text-ink leading-7">{kelompok?.nama ?? "Belum ada"}</p>

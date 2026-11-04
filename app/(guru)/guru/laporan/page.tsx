@@ -15,9 +15,9 @@ function buildCsv(data: GuruData) {
     const laporan = s.kelompokId ? laporanOf(data, s.kelompokId) : [];
     const nilai = laporan.flatMap((l) => (l.nilai === null ? [] : [l.nilai]));
     const rataNilai = nilai.length ? Math.round(nilai.reduce((total, n) => total + n, 0) / nilai.length) : "";
-    return [s.nama, kelas, kelompok, `${laporan.length}/4`, rataNilai, s.bintang].map(csvCell).join(",");
+    return [s.nama, kelas, kelompok, `${laporan.length}/4`, rataNilai, s.kuis?.terbaik ?? "", s.kuis?.percobaan ?? 0, s.bintang].map(csvCell).join(",");
   });
-  return ["Nama Siswa,Kelas,Kelompok,Kartu Selesai,Rata-Rata Nilai Kelompok,Bintang", ...rows].join("\n");
+  return ["Nama Siswa,Kelas,Kelompok,Kartu Selesai,Rata-Rata Nilai Kelompok,Nilai Kuis Terbaik,Percobaan Kuis,Bintang", ...rows].join("\n");
 }
 
 export default function GuruLaporanPage() {
@@ -40,7 +40,7 @@ export default function GuruLaporanPage() {
     <AppShell role="guru">
       <PageHeader
         title="Laporan Kelas"
-        description="Ringkasan kelompok, Kartu Misi, dan bintang setiap kelas."
+        description="Ringkasan kelompok, Kartu Misi, nilai Kuis Pintar, dan bintang setiap kelas."
         action={
           <div className="flex gap-2">
             <button type="button" onClick={() => window.print()} className="btn-secondary text-xs gap-1.5 inline-flex items-center">
@@ -63,6 +63,8 @@ export default function GuruLaporanPage() {
           const siswa = data.siswa.filter((s) => s.kelasId === kelas.id);
           const rataBintang = siswa.length ? Math.round(siswa.reduce((total, s) => total + s.bintang, 0) / siswa.length) : 0;
           const targetLaporan = info.jumlahKelompok * 4;
+          const sudahKuis = siswa.filter((s) => s.kuis);
+          const rataKuis = sudahKuis.length ? Math.round(sudahKuis.reduce((total, s) => total + (s.kuis?.terbaik ?? 0), 0) / sudahKuis.length) : 0;
           return (
             <section key={kelas.id} className="card space-y-3">
               <h2 className="text-sm font-bold text-ink">{kelas.nama}</h2>
@@ -87,6 +89,35 @@ export default function GuruLaporanPage() {
               {info.belumBerkelompok > 0 && (
                 <p className="text-xs font-semibold text-amber-700">{info.belumBerkelompok} siswa belum punya kelompok.</p>
               )}
+
+              <div className="space-y-1.5">
+                <h3 className="text-xs font-bold text-ink">
+                  Kuis Pintar: {sudahKuis.length} dari {siswa.length} siswa sudah mengerjakan
+                  {sudahKuis.length > 0 && ` · rata-rata nilai terbaik ${rataKuis}`}
+                </h3>
+                <div className="overflow-x-auto rounded-xl border border-line">
+                  <table className="w-full text-xs">
+                    <thead className="bg-surface-muted text-ink-muted">
+                      <tr>
+                        <th className="text-left font-semibold px-3 py-2">Nama</th>
+                        <th className="text-center font-semibold px-3 py-2">Terbaik</th>
+                        <th className="text-center font-semibold px-3 py-2">Terakhir</th>
+                        <th className="text-center font-semibold px-3 py-2">Percobaan</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {siswa.map((s) => (
+                        <tr key={s.id} className="border-t border-line">
+                          <td className="px-3 py-1.5 text-ink">{s.nama}</td>
+                          <td className="px-3 py-1.5 text-center font-bold text-ink">{s.kuis ? s.kuis.terbaik : "-"}</td>
+                          <td className="px-3 py-1.5 text-center text-ink">{s.kuis ? s.kuis.terakhir : "-"}</td>
+                          <td className="px-3 py-1.5 text-center text-ink">{s.kuis ? s.kuis.percobaan : "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </section>
           );
         })}

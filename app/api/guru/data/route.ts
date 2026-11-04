@@ -23,7 +23,7 @@ export async function GET() {
 
   try {
     const supabase = getSupabaseAdmin();
-    const [kelas, kelompok, siswa, misi] = await Promise.all([
+    const [kelas, kelompok, siswa, misi, kuis] = await Promise.all([
       supabase.from("kelas").select("id, nama, kode").order("nama"),
       supabase.from("kelompok").select("id, kelas_id, nama").order("id"),
       supabase.from("siswa").select("id, kelas_id, kelompok_id, nama, bintang").order("nama"),
@@ -32,9 +32,16 @@ export async function GET() {
         .select("kelompok_id, pot, laporan, selesai_at, nilai, umpan_balik, siswa(nama)")
         .order("selesai_at", { ascending: false })
         .overrideTypes<MisiRow[], { merge: false }>(),
+      supabase.from("hasil_kuis").select("siswa_id, skor").order("id"),
     ]);
-    const error = kelas.error ?? kelompok.error ?? siswa.error ?? misi.error;
+    const error = kelas.error ?? kelompok.error ?? siswa.error ?? misi.error ?? kuis.error;
     if (error) throw error;
+
+    // hasil_kuis diurutkan dari yang lama, jadi skor terakhir = elemen paling akhir.
+    const kuisPerSiswa = new Map<string, number[]>();
+    for (const row of kuis.data ?? []) {
+      kuisPerSiswa.set(row.siswa_id, [...(kuisPerSiswa.get(row.siswa_id) ?? []), row.skor]);
+    }
 
     const data: GuruData = {
       kelas: kelas.data ?? [],
@@ -45,6 +52,10 @@ export async function GET() {
         kelompokId: s.kelompok_id,
         nama: s.nama,
         bintang: s.bintang,
+        kuis: (() => {
+          const skor = kuisPerSiswa.get(s.id);
+          return skor ? { terbaik: Math.max(...skor), terakhir: skor[skor.length - 1], percobaan: skor.length } : null;
+        })(),
       })),
       laporan: (misi.data ?? []).map((m) => ({
         kelompokId: m.kelompok_id,

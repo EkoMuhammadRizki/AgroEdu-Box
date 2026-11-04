@@ -7,7 +7,6 @@ import {
   Class,
   Student,
   ActivityItem,
-  SensorHistoryPoint,
   Submission,
   RubricRow,
 } from "./types";
@@ -51,9 +50,6 @@ export const mockDevices: Device[] = POT_DEVICES.map(({ id, name }) => ({
   sensors: [],
 }));
 
-// Riwayat tidak lagi ditampilkan ke siswa; tetap dicatat oleh iot-store.
-export const mockSensorHistory: Record<string, SensorHistoryPoint[]> = {};
-
 // ─── MODULES ────────────────────────────────────────────────────
 // Materi nyata: satu modul berisi 4 frame storyboard. Video YouTube tampil sebelum
 // storyboard. Video Seri 1 mencakup Frame 2 dan 3, jadi Frame 3 tidak punya video sendiri.
@@ -67,6 +63,7 @@ export const mockModules: Module[] = [
     durationMin: 20, status: "terbit", classIds: ["kelas-6a", "kelas-6b"],
     objectives: ["Menjelaskan penyebab tanah tandus", "Memahami pentingnya kelembapan tanah", "Menjelaskan pengaruh suhu udara terhadap tanaman"],
     content: "Tanah dan suhu udara sangat menentukan kehidupan tanaman.",
+    quizId: "quiz-1",
     lessons: [
       {
         video: { title: "Video Awalan", youtubeId: "tLrV5XYyXMY", poster: "/video/poster/awalan.jpg" },
@@ -165,41 +162,132 @@ export const mockSubmissions: Submission[] = [
 ];
 
 // ─── QUIZZES ────────────────────────────────────────────────────
+// Naskah resmi: 10 soal pilihan ganda. Skor = benar / 10 × 100.
 export const mockQuizzes: Quiz[] = [
   {
     id: "quiz-1",
-    moduleId: "mod-3",
-    title: "Kuis: Sensor IoT dalam Pertanian",
+    moduleId: "mod-tanah-suhu",
+    title: "Kuis Pintar: Rahasia Tanah & Suhu Udara",
     questions: [
       {
-        id: "q1", text: "Sensor DHT22 digunakan untuk mengukur apa?",
-        options: ["Kelembapan tanah", "Suhu udara", "Tinggi tanaman", "Kadar CO2"],
-        correctIndex: 1,
-        explanation: "DHT22 adalah sensor suhu udara presisi yang umum digunakan dalam sistem IoT pertanian.",
+        id: "q1",
+        text: "Di dalam ekosistem kebun pertanian, seluruh makhluk hidup saling bergantung pada lingkungan fisiknya. Contoh kelompok komponen biotik dan abiotik secara berurutan adalah ...",
+        options: [
+          "tanaman sayur dan cacing tanah (biotik); air, tanah, dan suhu udara (abiotik)",
+          "cahaya matahari dan air (biotik); bakteri pengurai dan tanaman (abiotik)",
+          "udara dan batu (biotik); cacing tanah dan manusia (abiotik)",
+          "kelembapan tanah dan nutrisi (biotik); sayuran hijau (abiotik)",
+        ],
+        correctIndex: 0,
+        explanation: "Biotik adalah makhluk hidup (tanaman, cacing tanah). Abiotik adalah benda tak hidup (air, tanah, suhu udara).",
       },
       {
-        id: "q2", text: "Mengapa data sensor perlu disertai timestamp (waktu pembacaan)?",
-        options: ["Agar data lebih banyak", "Untuk mengetahui kapan data diambil dan memvalidasi kebaruan data", "Agar grafik terlihat bagus", "Karena diwajibkan oleh ESP32"],
-        correctIndex: 1,
-        explanation: "Timestamp penting untuk memastikan data yang ditampilkan benar-benar baru dan bukan data lama yang menyesatkan.",
+        id: "q2",
+        text: "Ketika musim kemarau berlangsung sangat panjang, suhu udara meningkat dan air di dalam tanah habis menguap. Kondisi lingkungan ini menyebabkan tanah menjadi tandus dan tanaman menjadi layu karena ...",
+        options: [
+          "tanaman tidak dapat menyerap air melalui akarnya",
+          "tanaman mendapatkan terlalu banyak pasokan oksigen",
+          "suhu udara yang panas membuat tanaman tidak membutuhkan cahaya",
+          "akar tanaman bernapas terlalu cepat di dalam air",
+        ],
+        correctIndex: 0,
+        explanation: "Pada tanah tandus air sudah habis, sehingga akar tidak bisa menyerap air dan daun menjadi layu.",
       },
       {
-        id: "q3", text: "Jika sensor menampilkan status 'offline', apa yang harus dilakukan?",
-        options: ["Langsung simpulkan tanaman dalam bahaya", "Menggunakan angka terakhir sebagai data aktual", "Periksa koneksi perangkat dan jangan menggunakan angka lama sebagai data terkini", "Hapus data dan mulai ulang"],
+        id: "q3",
+        text: "Banyak orang mengira jika tanaman diberi pupuk padat dalam jumlah banyak maka tanaman pasti langsung subur. Padahal, akar tanaman memerlukan zat cair untuk membantu proses penyerapan, yaitu ...",
+        options: [
+          "air berfungsi sebagai pelarut unsur hara kompos agar dapat diserap oleh rambut akar",
+          "air berfungsi untuk mendinginkan daun agar tidak terkena cahaya matahari",
+          "pupuk padat dapat langsung dicerna oleh gigi akar tanaman tanpa air",
+          "air digunakan untuk membunuh mikroba pengurai di dalam tanah",
+        ],
+        correctIndex: 0,
+        explanation: "Air melarutkan unsur hara dari pupuk atau kompos, sehingga bisa diserap oleh rambut akar.",
+      },
+      {
+        id: "q4",
+        text: "Sisa sampah daun kering di halaman sekolah atau kebun sering kali dibiarkan menumpuk atau dibakar. Berdasarkan prinsip sains lingkungan, tindakan yang paling tepat untuk mengolah limbah tersebut adalah ...",
+        options: [
+          "membuangnya langsung ke aliran sungai agar bersih",
+          "membakar seluruh daun kering di dekat area tanaman",
+          "mengolahnya menjadi pupuk kompos organik yang menyuburkan tanah",
+          "mencampurnya dengan sampah plastik agar cepat hancur",
+        ],
         correctIndex: 2,
-        explanation: "Status offline berarti data tidak diperbarui. Jangan gunakan angka lama seolah-olah data saat ini.",
+        explanation: "Daun kering bisa diolah menjadi kompos organik yang menyuburkan tanah dan mengurangi sampah.",
       },
       {
-        id: "q4", text: "Apa yang dimaksud dengan kalibrasi sensor?",
-        options: ["Mengganti baterai sensor", "Menyesuaikan pembacaan sensor agar akurat sesuai kondisi nyata", "Memperbarui firmware ESP32", "Mengubah satuan pengukuran"],
+        id: "q5",
+        text: "Sekelompok siswa ingin menguji pengaruh jumlah volume penyiraman air terhadap pertumbuhan tinggi berbagai tanaman sayur di kebun sekolah. Dalam rancangan percobaan tersebut, faktor yang sengaja dibedakan (dibuat tidak sama) pada setiap pot adalah ...",
+        options: [
+          "jenis benih tanaman yang digunakan",
+          "jumlah volume air yang disiramkan",
+          "ukuran dan jenis wadah pot",
+          "jenis media tanam dasar",
+        ],
         correctIndex: 1,
-        explanation: "Kalibrasi adalah proses menyesuaikan nilai sensor dengan nilai referensi yang terukur, agar data yang ditampilkan akurat.",
+        explanation: "Yang sengaja dibedakan adalah hal yang sedang diuji, yaitu jumlah air yang disiramkan. Itulah variabel bebas.",
       },
       {
-        id: "q5", text: "Nilai kelembapan tanah 45% pada sensor SELALU berarti tanah...",
-        options: ["Terlalu kering", "Optimal untuk semua tanaman", "Perlu dievaluasi berdasarkan jenis tanaman dan media", "Terlalu basah"],
+        id: "q6",
+        text: "Dalam sebuah eksperimen ilmiah perbandingan pertumbuhan tanaman, beberapa faktor seperti ukuran wadah, jumlah biji awal, dan jenis media tanam harus dibuat sama persis pada setiap kelompok perlakuan. Faktor-faktor yang dibuat sama ini disebut sebagai ...",
+        options: [
+          "variabel bebas perlakuan",
+          "variabel terikat pengamatan",
+          "variabel kontrol (pengendali)",
+          "variabel sensor digital IoT",
+        ],
         correctIndex: 2,
-        explanation: "Angka sensor tidak bisa langsung dinilai baik/buruk tanpa konteks. Ambang batas harus dikalibrasi per tanaman, media, dan tahap tumbuh.",
+        explanation: "Faktor yang dibuat sama agar percobaan adil disebut variabel kontrol (pengendali).",
+      },
+      {
+        id: "q7",
+        text: "Siswa menggunakan modul sensor pintar IoT (Soil Moisture A0) untuk mendeteksi kondisi media tanam. Jika layar web menunjukkan indikator warna Merah dan Alarm Buzzer berbunyi, maka tafsiran data sensor tersebut adalah ...",
+        options: [
+          "kelembapan tanah sangat rendah (<30%) atau kering, sehingga tanaman kekurangan air",
+          "kelembapan tanah berada pada tingkat ideal dan sangat subur (50%-80%)",
+          "tanaman disiram terlalu banyak air hingga tergenang penuh (>95%)",
+          "suhu udara di sekitar kebun menjadi sangat dingin dan sejuk",
+        ],
+        correctIndex: 0,
+        explanation: "Merah dan buzzer berbunyi berarti kelembapan tanah di bawah 30%: tanah kering dan tanaman perlu disiram.",
+      },
+      {
+        id: "q8",
+        text: "Perhatikan data pengamatan dua kelompok tanaman: Tanaman di media tanah humus bercampur kompos tumbuh lebih tinggi dan berdaun lebat dibandingkan tanaman di media tanah pasir yang cepat kering. Kesimpulan yang paling valid dari data tersebut adalah ...",
+        options: [
+          "media tanah humus dan kompos lebih baik dalam menahan kelembapan dan menyediakan nutrisi bagi pertumbuhan tanaman",
+          "tanah pasir merupakan media tanam terbaik untuk seluruh jenis tanaman sayur",
+          "jenis media tanam tidak memberikan pengaruh apa pun terhadap kesehatan tanaman",
+          "tanaman di media pasir tidak memerlukan bantuan cahaya matahari",
+        ],
+        correctIndex: 0,
+        explanation: "Data menunjukkan tanaman di humus dan kompos tumbuh lebih baik, karena media itu menahan air dan kaya nutrisi.",
+      },
+      {
+        id: "q9",
+        text: "Ketika media tanam pot menunjukkan kelembapan yang sangat rendah (kering kerontang), daun tanaman akan berubah menjadi lunglai, menguning, dan terkulai lemas. Hubungan sebab-akibat dari kondisi tersebut adalah ...",
+        options: [
+          "kekurangan pasokan air di dalam tanah mengganggu proses metabolisme dan penyerapan nutrisi tanaman",
+          "kelembapan yang terlalu rendah justru mempercepat pertumbuhan batang tanaman",
+          "daun tanaman layu karena kelebihan cadangan air di dalam batangnya",
+          "media yang kering membuat akar tanaman dapat bernapas dengan sangat bebas",
+        ],
+        correctIndex: 0,
+        explanation: "Sebabnya tanah kekurangan air, akibatnya tanaman tidak bisa menyerap nutrisi dan daunnya layu.",
+      },
+      {
+        id: "q10",
+        text: "Sebagai wujud kepedulian terhadap lingkungan dan ketahanan pangan sekolah, siswa merancang proyek pembuatan produk \"Kompos Organik\" dari limbah daun. Manfaat utama dari inovasi sosial tersebut bagi ekosistem adalah ...",
+        options: [
+          "mengurangi volume sampah organik di lingkungan sekaligus menghasilkan nutrisi alami penyubur tanah",
+          "menciptakan limbah baru yang mencemari sumber air tanah di sekitar sekolah",
+          "menggantikan kebutuhan air bersih bagi tanaman secara permanen",
+          "menghentikan seluruh aktivitas daur ulang sampah plastik di masyarakat",
+        ],
+        correctIndex: 0,
+        explanation: "Kompos mengurangi sampah organik dan menghasilkan nutrisi alami untuk menyuburkan tanah.",
       },
     ],
   },
