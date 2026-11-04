@@ -16,8 +16,6 @@ import { showSuccessAlert, showWarningAlert, showConfirmDialog, showToast } from
 const SENSOR_META: Record<string, { label: string; icon: React.ReactNode; color: string; scheme: "orange" | "blue" | "green" | "yellow" }> = {
   air_temp: { label: "Suhu Udara", icon: <Thermometer className="h-5 w-5" />, color: "#F59A3B", scheme: "orange" },
   soil_moisture: { label: "Kelembapan Tanah", icon: <Sprout className="h-5 w-5" />, color: "#3F9B2E", scheme: "green" },
-  air_humidity: { label: "Kelembapan Udara", icon: <Droplets className="h-5 w-5" />, color: "#3FA7E0", scheme: "blue" },
-  light: { label: "Intensitas Cahaya", icon: <Sun className="h-5 w-5" />, color: "#FFB81C", scheme: "yellow" },
 };
 
 interface ObservationNote {
@@ -27,7 +25,7 @@ interface ObservationNote {
   timestamp: string;
 }
 
-const EXAMPLE_NOTE = "Pukul 09.30 WIB — Daun ke-4 mulai tumbuh hijau cerah, media cocopeat terasa lembap gembur. Suhu 28.4°C dan kelembapan 62% terpantau optimal untuk fase vegetatif.";
+const EXAMPLE_NOTE = "Pukul 09.30 WIB — Daun ke-4 mulai tumbuh hijau cerah, media cocopeat terasa lembap gembur. Suhu 28.4°C dan kelembapan tanah 45% terpantau optimal untuk fase vegetatif.";
 
 export default function LabIotPage() {
   const [devices, setDevices] = useState(mockDevices);
@@ -220,7 +218,7 @@ export default function LabIotPage() {
         {/* Sensor Grid */}
         {!isOffline && (
           <>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {device.sensors.map((sensor) => {
                 const meta = SENSOR_META[sensor.sensorType];
                 return (

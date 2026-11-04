@@ -200,7 +200,7 @@ export default function GuruPengaturanPage() {
             {/* Kangkung */}
             <div className="p-3.5 rounded-xl bg-surface-muted border border-line space-y-3">
               <h4 className="text-xs font-bold text-ink">1. Kangkung Darat (Ipomoea aquatica)</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+              <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <label className="text-[11px] text-ink-muted block mb-1">Suhu Target (°C)</label>
                   <input
@@ -217,21 +217,13 @@ export default function GuruPengaturanPage() {
                     className="input-field text-xs font-mono"
                   />
                 </div>
-                <div>
-                  <label className="text-[11px] text-ink-muted block mb-1">Intensitas Cahaya (lux)</label>
-                  <input
-                    type="text"
-                    defaultValue="> 2500"
-                    className="input-field text-xs font-mono"
-                  />
-                </div>
               </div>
             </div>
 
             {/* Bayam Hijau */}
             <div className="p-3.5 rounded-xl bg-surface-muted border border-line space-y-3">
               <h4 className="text-xs font-bold text-ink">2. Bayam Hijau (Amaranthus tricolor)</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+              <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <label className="text-[11px] text-ink-muted block mb-1">Suhu Target (°C)</label>
                   <input
@@ -245,14 +237,6 @@ export default function GuruPengaturanPage() {
                   <input
                     type="text"
                     defaultValue="45 - 65"
-                    className="input-field text-xs font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] text-ink-muted block mb-1">Intensitas Cahaya (lux)</label>
-                  <input
-                    type="text"
-                    defaultValue="> 2000"
                     className="input-field text-xs font-mono"
                   />
                 </div>

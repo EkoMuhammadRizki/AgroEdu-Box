@@ -30,7 +30,7 @@ Sistem ini dirancang khusus untuk siswa sekolah dan guru agar proses praktikum p
 ## 🎯 Tujuan Dibuat
 
 1. **Edukasi Pertanian Modern Berbasis Data**: Mengenalkan konsep pertanian presisi (*precision agriculture*) kepada siswa sejak dini melalui pembacaan sensor fisik.
-2. **Konektivitas Teori dan Praktik Nyata**: Membantu siswa menghubungkan kondisi visual tanaman (seperti daun layu/segar) dengan parameter lingkungan kuantitatif (suhu udara, kelembapan tanah, dan intensitas cahaya).
+2. **Konektivitas Teori dan Praktik Nyata**: Membantu siswa menghubungkan kondisi visual tanaman (seperti daun layu/segar) dengan parameter lingkungan kuantitatif (suhu udara dan kelembapan tanah).
 3. **Pembelajaran Aktif & Terstruktur**: Menyediakan alur belajar bertahap: *Eksplorasi Materi → Pengamatan Lab IoT → Pelaksanaan Kartu Misi Lapangan → Evaluasi Kuis → Sertifikat Kelulusan*.
 4. **Alat Bantu Pemantauan Guru (AGRO EDU TRACK)**: Memfasilitasi guru pembimbing dalam mengelola kelas, memantau kesehatan alat IoT, serta menilai tugas siswa dengan rubrik kompetensi terstandar.
 
@@ -40,9 +40,9 @@ Sistem ini dirancang khusus untuk siswa sekolah dan guru agar proses praktikum p
 
 ### 🧑‍🌾 1. Area Siswa (Petani Muda)
 - **Onboarding Ceria & Pemilihan Karakter**: Masuk dengan nama dan kode kelas, serta memilih avatar maskot tunas ceria (*Original* atau *Girl*).
-- **Dashboard Beranda Cerdas**: Ringkasan telemetri live perangkat box, progres misi harian, kuis aktif, dan total perolehan bintang.
+- **Dashboard Beranda Cerdas**: Ringkasan telemetri live perangkat box (suhu udara & kelembapan tanah), progres misi harian, kuis aktif, dan total perolehan bintang.
 - **Modul Pembelajaran & Bioskop Agro**: Modul interaktif lengkap dengan simulasi pergerakan air dan respon sensor resistif A0.
-- **Lab IoT Telemetri Real-Time**: Pemantauan multi-sensor (suhu DHT22, kelembapan tanah A0, kelembapan udara, cahaya) yang ter-update otomatis via polling data live.
+- **Lab IoT Telemetri Real-Time**: Pemantauan 2 parameter sensor utama (suhu udara DHT22 dan kelembapan tanah A0) yang ter-update otomatis via polling data live.
 - **Kartu Misi & Tugas Digital**: Formulir pengerjaan tugas ilmiah dengan integrasi bukti telemetri sensor, unggah foto/dokumen, dan refleksi belajar.
 - **Kuis Pintar & Sertifikat Digital**: Latihan soal interaktif dengan pembahasan lengkap, mode presentasi kelas layar penuh, serta fitur cetak sertifikat kelulusan digital.
 - **Profil & Gamifikasi**: Peringkat bintang, koleksi piala, riwayat aktivitas, dan saluran umpan balik langsung dari guru pembimbing.
@@ -79,9 +79,8 @@ Sistem ini dirancang khusus untuk siswa sekolah dan guru agar proses praktikum p
 ### Hardware & Perangkat IoT
 - **Mikrokontroler**: ESP32 / Arduino Uno R4 WiFi / ESP8266
 - **Sensor Lingkungan**:
-  - Sensor Suhu & Kelembapan Udara (DHT22 / DHT11)
+  - Sensor Suhu Udara (DHT22 / DHT11)
   - Sensor Kelembapan Tanah (Capacitive Soil Moisture v1.2 / Resistive Analog A0)
-  - Sensor Intensitas Cahaya (LDR / Lux Meter)
   - Output Alarm Aktuator (Buzzer & LCD 16x2 I2C)
 - **Protokol Komunikasi**: HTTP REST POST (JSON) & MQTT Broker Bridge Ready
 
@@ -110,11 +109,6 @@ Alat mikrokontroler (Arduino/ESP32) mengirimkan data ke sistem melalui HTTP POST
       "sensorType": "air_temp",
       "value": 27.8,
       "unit": "°C"
-    },
-    {
-      "sensorType": "air_humidity",
-      "value": 65.0,
-      "unit": "%"
     }
   ]
 }

@@ -123,9 +123,7 @@ export default function KerjakanMisiPage() {
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-heading font-bold text-ink-900 truncate">
-                      {sensor.sensorType === "air_temp" ? "Suhu Udara" :
-                       sensor.sensorType === "air_humidity" ? "Kelembapan Udara" :
-                       sensor.sensorType === "soil_moisture" ? "Kelembapan Tanah" : "Intensitas Cahaya"}
+                      {sensor.sensorType === "air_temp" ? "Suhu Udara" : "Kelembapan Tanah"}
                     </p>
                     <p className="text-xs text-green-700 font-extrabold tabular-nums">
                       {sensor.value} {sensor.unit}

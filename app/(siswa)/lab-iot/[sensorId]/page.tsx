@@ -7,7 +7,7 @@ import { formatTimestamp } from "@/lib/iot";
 import { notFound, useParams } from "next/navigation";
 import { useState } from "react";
 import {
-  Thermometer, Droplets, Sun, Activity, Download,
+  Thermometer, Activity, Download,
   ArrowLeft, Info
 } from "lucide-react";
 import Link from "next/link";
@@ -22,29 +22,13 @@ const SENSOR_META: Record<string, { name: string; unit: string; icon: React.Elem
     desc: "Mengukur temperatur lingkungan mikro di kanopi daun tanaman dengan sensor DHT22 terkalibrasi.",
     color: "#F59A3B",
   },
-  "s1-hum": {
-    name: "Kelembapan Udara",
-    unit: "%",
-    icon: Droplets,
-    idealRange: "55% – 70% RH",
-    desc: "Tingkat uap air di sekitar kanopi. Kelembapan seimbang mencegah serangan spora jamur daun.",
-    color: "#3FA7E0",
-  },
   "s1-soil": {
-    name: "Kelembapan Media (A0)",
+    name: "Kelembapan Tanah (A0)",
     unit: "%",
     icon: Activity,
     idealRange: "40% – 65% (Kapasitas Lapang)",
     desc: "Kadar air substrat perakaran. Sensor resistif analog yang membaca konduktivitas larutan nutrisi.",
     color: "#3F9B2E",
-  },
-  "s1-light": {
-    name: "Intensitas Cahaya",
-    unit: "lux",
-    icon: Sun,
-    idealRange: "2.500 – 4.500 lux",
-    desc: "Intensitas foton cahaya yang diserap klorofil untuk laju fotosintesis optimal tanaman.",
-    color: "#FFB81C",
   },
 };
 

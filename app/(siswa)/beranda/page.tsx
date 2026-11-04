@@ -3,17 +3,16 @@ import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-sh
 import { BibooMascot } from "@/components/agro/biboo-mascot";
 import { Butterfly, Ladybug } from "@/components/agro/decorative-nature";
 import {
-  mockDevices, mockModules, mockMissions, mockActivities
+  mockDevices, mockModules, mockModuleProgress, mockMissions, mockActivities
 } from "@/lib/mock-data";
 import {
-  Thermometer, Droplets, Sprout, Sun, ArrowRight,
+  Thermometer, Droplets, Sprout, ArrowRight,
   Trophy, CheckCircle2, Clock, Sparkles, BookOpen, Check, Lock
 } from "lucide-react";
 import { formatTimestamp } from "@/lib/iot";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { showToast } from "@/lib/swal";
-import { getStudentProfile, saveStudentProfile } from "@/lib/student-session";
+import { getStudentProfile } from "@/lib/student-session";
 import { DAILY_POTS, STARS_PER_POT, type DailyPot } from "@/lib/daily-missions";
 
 export default function BerandaSiswaPage() {
@@ -22,7 +21,6 @@ export default function BerandaSiswaPage() {
   const [device, setDevice] = useState(mockDevices[0]);
   const [completedPots, setCompletedPots] = useState<DailyPot[]>([]);
   const [missionsStatus, setMissionsStatus] = useState<"loading" | "ready" | "error">("loading");
-  const [savingPot, setSavingPot] = useState<DailyPot | null>(null);
 
   const loadDailyMissions = async () => {
     const profile = getStudentProfile();
@@ -73,33 +71,6 @@ export default function BerandaSiswaPage() {
   }, []);
 
   const isOffline = device.status === "offline";
-
-  const completePot = async (pot: DailyPot) => {
-    const profile = getStudentProfile();
-    if (!profile || savingPot) return;
-    setSavingPot(pot);
-    try {
-      const res = await fetch("/api/siswa/misi-harian", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siswaId: profile.id, pot }),
-      });
-      if (res.status === 409) {
-        await loadDailyMissions();
-        return;
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const { bintang } = await res.json();
-      saveStudentProfile({ ...profile, stars: bintang });
-      setCompletedPots((done) => [...done, pot]);
-      showToast(`Hebat! Pot Tanaman ${pot} selesai, +${STARS_PER_POT} Bintang! ⭐`, "success", 1600);
-    } catch {
-      showToast("Belum tersimpan. Periksa internetmu lalu coba lagi.", "info");
-    } finally {
-      setSavingPot(null);
-    }
-  };
 
   return (
     <AppShell role="siswa">
@@ -176,7 +147,7 @@ export default function BerandaSiswaPage() {
                 </div>
               </div>
 
-              {/* Sensor Pills Grid */}
+              {/* Sensor Pills Grid — Hanya Suhu Udara & Kelembapan Tanah */}
               <div className="grid grid-cols-2 gap-2 sm:gap-2.5 mb-3 sm:mb-4">
                 {/* Suhu */}
                 <div className="bg-white/90 p-2.5 sm:p-3 rounded-2xl border-2 border-orange-400/30 flex items-center gap-2 sm:gap-3 shadow-xs">
@@ -185,7 +156,9 @@ export default function BerandaSiswaPage() {
                   </div>
                   <div className="min-w-0">
                     <span className="text-[9px] sm:text-[10px] font-heading font-bold text-ink-600 block truncate">Suhu Udara</span>
-                    <span className="font-heading font-extrabold text-base sm:text-lg text-ink-900 leading-none">28.4°C</span>
+                    <span className="font-heading font-extrabold text-base sm:text-lg text-ink-900 leading-none">
+                      {device.sensors.find((s) => s.sensorType === "air_temp")?.value ?? "28.4"}°C
+                    </span>
                   </div>
                 </div>
 
@@ -196,29 +169,9 @@ export default function BerandaSiswaPage() {
                   </div>
                   <div className="min-w-0">
                     <span className="text-[9px] sm:text-[10px] font-heading font-bold text-ink-600 block truncate">Kelembapan Tanah</span>
-                    <span className="font-heading font-extrabold text-base sm:text-lg text-ink-900 leading-none">45%</span>
-                  </div>
-                </div>
-
-                {/* Kelembapan Udara */}
-                <div className="bg-white/90 p-2.5 sm:p-3 rounded-2xl border-2 border-blue-400/30 flex items-center gap-2 sm:gap-3 shadow-xs">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-200/50 text-blue-500 flex items-center justify-center flex-shrink-0">
-                    <Droplets className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[9px] sm:text-[10px] font-heading font-bold text-ink-600 block truncate">Kelembapan Udara</span>
-                    <span className="font-heading font-extrabold text-base sm:text-lg text-ink-900 leading-none">62%</span>
-                  </div>
-                </div>
-
-                {/* Cahaya */}
-                <div className="bg-white/90 p-2.5 sm:p-3 rounded-2xl border-2 border-yellow-400/30 flex items-center gap-2 sm:gap-3 shadow-xs">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-yellow-300/40 text-yellow-600 flex items-center justify-center flex-shrink-0">
-                    <Sun className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[9px] sm:text-[10px] font-heading font-bold text-ink-600 block truncate">Intensitas Cahaya</span>
-                    <span className="font-heading font-extrabold text-base sm:text-lg text-ink-900 leading-none">3200 lux</span>
+                    <span className="font-heading font-extrabold text-base sm:text-lg text-ink-900 leading-none">
+                      {device.sensors.find((s) => s.sensorType === "soil_moisture")?.value ?? "45"}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -233,13 +186,13 @@ export default function BerandaSiswaPage() {
             </Link>
           </div>
 
-          {/* 2. DAILY MISSIONS (Kartu Misi Checklist Pil) */}
+          {/* 2. MISI POT TANAMAN (tercentang dari tab Kartu Misi) */}
           <div className="card-cream flex flex-col justify-between p-4 sm:p-6">
             <div>
               <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-3 sm:mb-4 flex items-center justify-between bg-yellow-300/40 border-yellow-300 text-brown-600">
                 <span className="flex items-center gap-1.5 sm:gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
-                  DAILY MISSIONS (MISI HARIAN)
+                  MISI POT TANAMAN
                 </span>
                 <span className="text-[9px] sm:text-[10px] font-bold text-brown-600">
                   {completedPots.length}/{DAILY_POTS.length} Selesai
@@ -248,17 +201,17 @@ export default function BerandaSiswaPage() {
 
               <p className="text-[11px] sm:text-xs text-ink-600 mb-2.5">
                 {completedPots.length === DAILY_POTS.length
-                  ? "Semua pot sudah dirawat hari ini. Sampai besok ya! 🌱"
-                  : "Rawat pot secara berurutan, mulai dari Pot A sampai Pot D:"}
+                  ? "Hebat! Semua Kartu Misi sudah selesai. 🌱"
+                  : "Selesaikan Kartu Misi berurutan, nanti misinya tercentang otomatis:"}
               </p>
 
               {missionsStatus === "loading" && (
-                <p className="text-xs text-ink-600 text-center py-6">Memuat misi harian...</p>
+                <p className="text-xs text-ink-600 text-center py-6">Memuat misi...</p>
               )}
 
               {missionsStatus === "error" && (
                 <div className="text-center space-y-2 py-4">
-                  <p className="text-xs text-ink-600">Misi harian belum bisa dimuat.</p>
+                  <p className="text-xs text-ink-600">Misi belum bisa dimuat.</p>
                   <button type="button" onClick={loadDailyMissions} className="btn-ghost text-xs px-4 py-1.5">
                     Coba Lagi
                   </button>
@@ -270,21 +223,15 @@ export default function BerandaSiswaPage() {
                 {DAILY_POTS.map((pot, index) => {
                   const isDone = completedPots.includes(pot);
                   const isNext = index === completedPots.length;
-                  const isSaving = savingPot === pot;
-                  return (
-                    <button
-                      key={pot}
-                      type="button"
-                      disabled={!isNext || savingPot !== null}
-                      onClick={() => completePot(pot)}
-                      className={`w-full text-left p-2.5 sm:p-3 rounded-2xl border-2 transition-all flex items-center justify-between gap-2.5 ${
-                        isDone
-                          ? "bg-green-100/60 border-green-300 text-green-800"
-                          : isNext
-                            ? "bg-white border-green-400 hover:bg-green-50 cursor-pointer"
-                            : "bg-[#EAEFE6]/60 border-ink-300/30 opacity-70"
-                      }`}
-                    >
+                  const rowClass = `w-full p-2.5 sm:p-3 rounded-2xl border-2 transition-all flex items-center justify-between gap-2.5 ${
+                    isDone
+                      ? "bg-green-100/60 border-green-300 text-green-800"
+                      : isNext
+                        ? "bg-white border-green-400 hover:bg-green-50"
+                        : "bg-[#EAEFE6]/60 border-ink-300/30 opacity-70"
+                  }`;
+                  const rowContent = (
+                    <>
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span
                           className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
@@ -304,12 +251,10 @@ export default function BerandaSiswaPage() {
                           </p>
                           <p className="text-[10px] text-ink-600 truncate">
                             {isDone
-                              ? "Selesai hari ini"
-                              : isSaving
-                                ? "Menyimpan..."
-                                : isNext
-                                  ? "Cek kondisi pot, lalu ketuk di sini"
-                                  : `Selesaikan Pot ${DAILY_POTS[index - 1]} dulu`}
+                              ? "Selesai"
+                              : isNext
+                                ? `Kerjakan Kartu Investigasi #${index + 1}`
+                                : `Selesaikan Pot ${DAILY_POTS[index - 1]} dulu`}
                           </p>
                         </div>
                       </div>
@@ -317,7 +262,16 @@ export default function BerandaSiswaPage() {
                       <span className="px-2 py-0.5 rounded-full bg-yellow-300/60 text-brown-600 font-heading font-extrabold text-[10px] flex-shrink-0">
                         +{STARS_PER_POT} ⭐
                       </span>
-                    </button>
+                    </>
+                  );
+                  return isDone || isNext ? (
+                    <Link key={pot} href={`/misi/pot/${pot.toLowerCase()}`} className={rowClass}>
+                      {rowContent}
+                    </Link>
+                  ) : (
+                    <div key={pot} className={rowClass}>
+                      {rowContent}
+                    </div>
                   );
                 })}
               </div>
@@ -393,8 +347,8 @@ export default function BerandaSiswaPage() {
 
               {/* Module cards grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-                {mockModules.map((mod, i) => {
-                  const progress = i === 0 ? 100 : i === 1 ? 100 : 40;
+                {mockModules.map((mod) => {
+                  const progress = mockModuleProgress[mod.id] ?? 0;
                   const isFinished = progress === 100;
                   return (
                     <Link

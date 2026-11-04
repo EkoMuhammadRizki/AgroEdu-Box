@@ -1,6 +1,7 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
+import { LessonReader } from "@/components/agro/lesson-reader";
 import { mockModules } from "@/lib/mock-data";
 import { notFound, useParams, useRouter } from "next/navigation";
 import {
@@ -36,8 +37,7 @@ export default function MateriDetailPage() {
     );
   };
 
-  return (
-    <AppShell role="siswa">
+  const header = (
       <PageHeader
         title={mod.title}
         description={`${mod.topic} · Estimasi ${mod.durationMin} menit belajar`}
@@ -53,6 +53,22 @@ export default function MateriDetailPage() {
           </Link>
         }
       />
+  );
+
+  if (mod.lessons) {
+    return (
+      <AppShell role="siswa">
+        {header}
+        <ContentWrapper className="pb-8">
+          <LessonReader lessons={mod.lessons} />
+        </ContentWrapper>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell role="siswa">
+      {header}
 
       <ContentWrapper className="space-y-6 pb-8">
         {/* Kotak Tugas Kutipan Hijau Muda (DESIGN 2.md Section 5.7) */}

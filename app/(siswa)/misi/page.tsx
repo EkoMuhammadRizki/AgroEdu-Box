@@ -1,95 +1,133 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
-import { MissionCard } from "@/components/agro/mission-card";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
-import { mockMissions, mockSubmissions } from "@/lib/mock-data";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { ClipboardCheck, Sparkles, Star, Award, CheckCircle } from "lucide-react";
+import { Check, ClipboardCheck, Lock, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getStudentProfile } from "@/lib/student-session";
+import { DAILY_POTS, STARS_PER_POT, type DailyPot } from "@/lib/daily-missions";
+import { INVESTIGATION_CARDS } from "@/lib/investigation-cards";
 
 export default function MisiPage() {
   const [character, setCharacter] = useState<"original" | "girl">("original");
+  const [completed, setCompleted] = useState<DailyPot[]>([]);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+
+  const load = async () => {
+    const profile = getStudentProfile();
+    if (!profile) return;
+    setCharacter(profile.character);
+    setStatus("loading");
+    try {
+      const res = await fetch(`/api/siswa/misi-harian?siswaId=${profile.id}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setCompleted((await res.json()).selesai);
+      setStatus("ready");
+    } catch {
+      setStatus("error");
+    }
+  };
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("agro_student_profile");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.character) setCharacter(parsed.character);
-      }
-    } catch {
-      // ignore
-    }
+    load();
   }, []);
 
   return (
     <AppShell role="siswa">
       <PageHeader
         title="Kartu Misi & Tugas Digital"
-        description="Selesaikan misi praktikum, lampirkan bukti pembacaan sensor, dan kumpulkan laporan ke guru."
+        description="Selesaikan 4 Kartu Investigasi secara berurutan, dari Pot A sampai Pot D."
       />
 
       <ContentWrapper className="space-y-6 pb-8">
-        {/* Banner with BiBoo */}
         <div className="card-green flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-5 p-4 sm:p-6">
           <div className="space-y-1.5 sm:space-y-2 text-center md:text-left">
-            <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-pill bg-white text-green-700 text-[11px] sm:text-xs font-heading font-extrabold shadow-xs inline-flex items-center gap-1.5">
+            <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-pill bg-white text-green-700 text-[11px] sm:text-xs font-heading font-extrabold inline-flex items-center gap-1.5 shadow-xs">
               <ClipboardCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" /> Tantangan Belajar Aktif
             </span>
             <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-ink-900 leading-tight">
               Kumpulkan Bukti Ilmiah Tanamanmu! 🌿
             </h2>
             <p className="text-xs sm:text-sm text-ink-600 max-w-md leading-relaxed">
-              Setiap misi melatihmu berpikir seperti ilmuwan: mengamati langsung kondisi daun dan media, mencatat data sensor fisik, lalu merumuskan kesimpulan logis.
+              Kerjakan langkah di setiap kartu, catat data sensor, lalu jawab pertanyaannya. Misi di Beranda akan tercentang otomatis.
             </p>
           </div>
           <div className="flex-shrink-0">
-            <BibooMascot
-              mood="watering"
-              size="md"
-              character={character}
-              animated={true}
-            />
+            <BibooMascot mood="watering" size="md" character={character} animated={true} />
           </div>
         </div>
 
-        {/* Summary Stats Row */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <div className="card text-center p-2.5 sm:p-4">
-            <p className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-green-600 tabular-nums">{mockMissions.length}</p>
-            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-1 truncate">Total Misi</p>
+            <p className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-green-600 tabular-nums">{DAILY_POTS.length}</p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-1 truncate">Total Kartu</p>
           </div>
           <div className="card text-center p-2.5 sm:p-4">
-            <p className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-blue-500 tabular-nums">{mockSubmissions.length}</p>
-            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-1 truncate">Misi Terkirim</p>
+            <p className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-blue-500 tabular-nums">{completed.length}</p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-1 truncate">Kartu Selesai</p>
           </div>
           <div className="card text-center p-2.5 sm:p-4">
-            <p className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-yellow-500 tabular-nums">40 ⭐</p>
+            <p className="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-yellow-500 tabular-nums">{completed.length * STARS_PER_POT} ⭐</p>
             <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-1 truncate">Bintang Diraih</p>
           </div>
         </div>
 
-        {/* Mission List */}
         <div className="space-y-4">
           <h3 className="font-heading font-extrabold text-lg text-ink-900 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-yellow-500" /> Daftar Kartu Misi Aktif
+            <Sparkles className="w-5 h-5 text-yellow-500" /> Kartu Investigasi
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {mockMissions.map((mission) => {
-              const sub = mockSubmissions.find((s) => s.missionId === mission.id);
-              return (
-                <div key={mission.id} className="relative">
-                  <MissionCard mission={mission} href={`/misi/${mission.id}`} compact />
-                  {sub && (
-                    <div className="absolute top-4 right-14">
-                      <StatusBadge status={sub.status} />
+          {status === "error" && (
+            <div className="card text-center space-y-2">
+              <p className="text-sm text-ink-600">Kartu misi belum bisa dimuat.</p>
+              <button type="button" onClick={load} className="btn-ghost text-xs px-4 py-1.5">Coba Lagi</button>
+            </div>
+          )}
+
+          {status === "loading" && <p className="text-center text-sm text-ink-600 py-6">Memuat kartu misi...</p>}
+
+          {status === "ready" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {INVESTIGATION_CARDS.map((card, index) => {
+                const isDone = completed.includes(card.pot);
+                const isNext = index === completed.length;
+                return (
+                  <Link
+                    key={card.pot}
+                    href={`/misi/pot/${card.pot.toLowerCase()}`}
+                    className={`block rounded-3xl overflow-hidden bg-white border-3 border-white shadow-card transition-transform hover:-translate-y-0.5 ${
+                      !isDone && !isNext ? "opacity-70" : ""
+                    }`}
+                  >
+                    <div className="p-3.5 text-white" style={{ backgroundColor: card.color }}>
+                      <p className="font-heading font-extrabold text-[10px] tracking-wider text-yellow-200">
+                        KARTU INVESTIGASI #{card.number} | {card.code}
+                      </p>
+                      <h4 className="font-heading font-extrabold text-sm sm:text-base leading-snug mt-0.5">
+                        Misi Pot {card.pot}: {card.title}
+                      </h4>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    <div className="p-3.5 space-y-2">
+                      <p className="text-xs text-ink-600 leading-relaxed">{card.focus}</p>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-pill text-[11px] font-heading font-extrabold ${
+                          isDone
+                            ? "bg-green-100 text-green-700"
+                            : isNext
+                              ? "bg-yellow-300/60 text-brown-600"
+                              : "bg-[#EAEFE6] text-ink-600"
+                        }`}
+                      >
+                        {isDone && <><Check className="w-3 h-3 stroke-[3]" /> Selesai</>}
+                        {!isDone && isNext && <>Kerjakan sekarang (+{STARS_PER_POT} ⭐)</>}
+                        {!isDone && !isNext && <><Lock className="w-3 h-3" /> Terkunci</>}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </ContentWrapper>
     </AppShell>

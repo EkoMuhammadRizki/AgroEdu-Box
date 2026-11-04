@@ -77,7 +77,6 @@ export async function GET() {
         readings: [
           { sensorType: "soil_moisture", value: 45.0, unit: "%" },
           { sensorType: "air_temp", value: 28.5, unit: "°C" },
-          { sensorType: "air_humidity", value: 62.0, unit: "%" },
         ],
       },
     },

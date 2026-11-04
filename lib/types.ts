@@ -7,7 +7,7 @@ export type IotStatus = "online" | "data_terakhir" | "offline" | "tidak_valid" |
 export interface SensorReading {
   deviceId: string;
   sensorId: string;
-  sensorType: "soil_moisture" | "air_temp" | "air_humidity" | "light";
+  sensorType: "soil_moisture" | "air_temp";
   value: number;
   unit: string;
   measuredAt: string;
@@ -54,6 +54,14 @@ export interface Class {
   studentCount: number;
 }
 
+export interface LessonSection {
+  /** Bila ada, video tampil sebelum teks bagian ini. */
+  video?: { title: string; src: string; poster: string };
+  label?: string;
+  heading: string;
+  paragraphs: string[];
+}
+
 export interface Module {
   id: string;
   slug: string;
@@ -66,6 +74,8 @@ export interface Module {
   objectives: string[];
   content: string;
   quizId?: string;
+  /** Modul berisi video + bacaan; bila ada, menggantikan tampilan modul standar. */
+  lessons?: LessonSection[];
 }
 
 export interface Mission {

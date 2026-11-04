@@ -166,7 +166,7 @@ export default function GuruIotMonitoringPage() {
 
           {/* Grid Sensor Box */}
           {activeDevice.sensors.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
               {activeDevice.sensors.map((s) => (
                 <div key={s.sensorId} className="p-3.5 rounded-xl bg-surface-muted border border-line space-y-2">
                   <div className="flex items-center justify-between">

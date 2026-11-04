@@ -28,7 +28,7 @@ export function getStore(): IotStoreState {
 }
 
 export interface IngestReadingInput {
-  sensorType: "soil_moisture" | "air_temp" | "air_humidity" | "light" | string;
+  sensorType: "soil_moisture" | "air_temp" | string;
   value: number;
   unit?: string;
   sensorId?: string;
@@ -88,7 +88,7 @@ export function ingestTelemetryData(payload: IngestPayload) {
         sensorId,
         sensorType: sType,
         value: val,
-        unit: item.unit || (sType === "soil_moisture" || sType === "air_humidity" ? "%" : sType === "air_temp" ? "°C" : "lux"),
+        unit: item.unit || (sType === "soil_moisture" ? "%" : "°C"),
         measuredAt: payload.measuredAt || nowIso,
         receivedAt: nowIso,
         valid: item.valid !== false,

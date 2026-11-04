@@ -1,7 +1,7 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
 import { ModuleCard } from "@/components/agro/module-card";
-import { mockModules } from "@/lib/mock-data";
+import { mockModules, mockModuleProgress } from "@/lib/mock-data";
 import { Search, SlidersHorizontal, BookOpen, CheckCircle, Clock } from "lucide-react";
 import { useState } from "react";
 import { showToast } from "@/lib/swal";
@@ -13,7 +13,6 @@ export default function MateriPage() {
   const [selectedTopic, setSelectedTopic] = useState("Semua");
   const [filterCompletedOnly, setFilterCompletedOnly] = useState(false);
 
-  const progressMap: Record<string, number> = { "mod-1": 100, "mod-2": 100, "mod-3": 30 };
 
   const filtered = mockModules.filter((m) => {
     const matchesSearch =
@@ -22,13 +21,13 @@ export default function MateriPage() {
       m.description.toLowerCase().includes(search.toLowerCase());
 
     const matchesTopic = selectedTopic === "Semua" || m.topic.toLowerCase().includes(selectedTopic.toLowerCase());
-    const isCompleted = (progressMap[m.id] ?? 0) === 100;
+    const isCompleted = (mockModuleProgress[m.id] ?? 0) === 100;
     const matchesCompleted = !filterCompletedOnly || isCompleted;
 
     return matchesSearch && matchesTopic && matchesCompleted;
   });
 
-  const completedCount = mockModules.filter((m) => (progressMap[m.id] ?? 0) === 100).length;
+  const completedCount = mockModules.filter((m) => (mockModuleProgress[m.id] ?? 0) === 100).length;
 
   return (
     <AppShell role="siswa">
@@ -126,8 +125,8 @@ export default function MateriPage() {
                 key={mod.id}
                 module={mod}
                 href={`/materi/${mod.slug}`}
-                progress={progressMap[mod.id] ?? 0}
-                completed={(progressMap[mod.id] ?? 0) === 100}
+                progress={mockModuleProgress[mod.id] ?? 0}
+                completed={(mockModuleProgress[mod.id] ?? 0) === 100}
               />
             ))}
           </div>

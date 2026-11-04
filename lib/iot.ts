@@ -65,9 +65,7 @@ export function formatTimestamp(isoString: string): string {
 export function formatSensorLabel(type: string): string {
   const map: Record<string, string> = {
     air_temp: "Suhu Udara",
-    air_humidity: "Kelembapan Udara",
     soil_moisture: "Kelembapan Tanah",
-    light: "Intensitas Cahaya",
   };
   return map[type] ?? type;
 }
@@ -75,9 +73,7 @@ export function formatSensorLabel(type: string): string {
 export function getSensorIcon(type: string): string {
   const map: Record<string, string> = {
     air_temp: "Thermometer",
-    air_humidity: "Droplets",
     soil_moisture: "Sprout",
-    light: "Sun",
   };
   return map[type] ?? "Activity";
 }
