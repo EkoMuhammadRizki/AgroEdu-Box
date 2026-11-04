@@ -82,39 +82,46 @@ Sistem ini dirancang khusus untuk siswa sekolah dan guru agar proses praktikum p
   - Sensor Suhu Udara (DHT22 / DHT11)
   - Sensor Kelembapan Tanah (Capacitive Soil Moisture v1.2 / Resistive Analog A0)
   - Output Alarm Aktuator (Buzzer & LCD 16x2 I2C)
-- **Protokol Komunikasi**: HTTP REST POST (JSON) & MQTT Broker Bridge Ready
+- **Protokol Komunikasi**: MQTT (ESP32 ke broker) diteruskan sebagai HTTP POST JSON ke API
 
 ---
 
 ## 📡 Integrasi IoT & Telemetri
 
-Alat mikrokontroler (Arduino/ESP32) mengirimkan data ke sistem melalui HTTP POST:
+Satu ESP32 memantau empat pot (4 sensor tanah + 1 DHT22 + LCD + buzzer), lalu
+mengirim datanya lewat MQTT. Broker EMQX meneruskan sendiri tiap pesan ke
+website, jadi tidak perlu ada laptop yang menyala terus.
 
-- **Endpoint**: `https://agro-edu-box.vercel.app/api/iot/ingest`
-- **Method**: `POST`
-- **Content-Type**: `application/json`
-
-### Contoh Payload JSON:
-```json
-{
-  "deviceId": "pot-a",
-  "firmwareVersion": "1.0.0",
-  "readings": [
-    {
-      "sensorType": "soil_moisture",
-      "value": 48.5,
-      "unit": "%"
-    },
-    {
-      "sensorType": "air_temp",
-      "value": 27.8,
-      "unit": "°C"
-    }
-  ]
-}
+```
+ESP32  --MQTT-->  Broker EMQX  --webhook-->  /api/iot/ingest  -->  Supabase
+                                                                      |
+                            Lab IoT siswa & portal guru  <------------+
 ```
 
-Dashboard siswa dan guru akan menyinkronkan data baru secara live tanpa perlu memuat ulang halaman.
+Panduan lengkap (rangkaian, pengaturan EMQX, kalibrasi, dan cara mengatasi
+masalah) ada di **[firmware/README.md](firmware/README.md)**.
+
+- **Endpoint**: `POST /api/iot/ingest`
+- **Header**: `x-iot-token: <IOT_INGEST_TOKEN>` (atau `Authorization: Bearer`)
+- **Database**: jalankan `supabase/iot.sql` sekali di Supabase SQL Editor
+
+### Contoh Payload JSON
+
+```json
+{ "suhu": 28.4, "pot": { "a": 45.2, "b": 62.0, "c": 21.5, "d": 70.1 } }
+```
+
+Pesan Last Will saat alat mati mendadak:
+
+```json
+{ "status": "mati" }
+```
+
+Tanpa `IOT_INGEST_TOKEN`, produksi **menolak** semua data sensor, supaya tidak
+ada angka palsu yang masuk ke dashboard. Alat yang diam lebih dari 2 menit
+dianggap mati dan semua angkanya kembali 0.
+
+Dashboard siswa dan guru menyegarkan data secara berkala tanpa memuat ulang halaman.
 
 ---
 
