@@ -39,21 +39,25 @@ export function saveStudentProfile(profile: StudentProfile) {
   }
 }
 
-/** Simpan perubahan bintang/karakter ke lokal lalu ke database. */
-export async function updateStudentProgress(
-  changes: Partial<Pick<StudentProfile, "stars" | "character">>
-) {
+export async function updateStudentCharacter(character: StudentCharacter) {
   const profile = getStudentProfile();
   if (!profile) return;
-  const updated = { ...profile, ...changes };
-  saveStudentProfile(updated);
-  await pushProgress(updated);
+  saveStudentProfile({ ...profile, character });
+  await postProgress({ siswaId: profile.id, character });
 }
 
-/** Dorong progres terakhir (menutup kegagalan sync sebelumnya), lalu hapus sesi dari perangkat. */
-export async function logoutStudent() {
+/** Tambah bintang di server, lalu pakai total dari server sebagai nilai lokal. */
+export async function addStudentStars(amount: number) {
   const profile = getStudentProfile();
-  if (profile) await pushProgress(profile);
+  if (!profile) return;
+  saveStudentProfile({ ...profile, stars: profile.stars + amount });
+  const res = await postProgress({ siswaId: profile.id, addStars: amount });
+  const bintang = res?.ok ? (await res.json()).bintang : undefined;
+  const latest = getStudentProfile();
+  if (latest && typeof bintang === "number") saveStudentProfile({ ...latest, stars: bintang });
+}
+
+export function logoutStudent() {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {
@@ -61,15 +65,15 @@ export async function logoutStudent() {
   }
 }
 
-async function pushProgress({ id, stars, character }: StudentProfile) {
+async function postProgress(body: Record<string, unknown>) {
   try {
-    await fetch("/api/siswa/progres", {
+    return await fetch("/api/siswa/progres", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ siswaId: id, stars, character }),
+      body: JSON.stringify(body),
       keepalive: true,
     });
   } catch {
-    // Offline: nilai tetap ada di lokal dan dikirim ulang saat update/logout berikutnya.
+    return null;
   }
 }

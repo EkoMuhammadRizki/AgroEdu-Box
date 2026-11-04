@@ -1,11 +1,12 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, CheckCircle2, Lock, Radio, Send } from "lucide-react";
+import { ArrowLeft, Check, CheckCircle2, Lock, Radio, Send, Users } from "lucide-react";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
 import { showSuccessAlert, showWarningAlert } from "@/lib/swal";
 import { getStudentProfile, saveStudentProfile } from "@/lib/student-session";
 import { DAILY_POTS, STARS_PER_POT, type DailyPot } from "@/lib/daily-missions";
+import { fetchMissionStatus, type MissionStatus } from "@/lib/mission-status";
 import {
   checkCardReport, getPreviousPot,
   type BuzzerStatus, type CardReport, type InvestigationCard,
@@ -28,6 +29,7 @@ export function InvestigationCardView({ card }: { card: InvestigationCard }) {
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [completed, setCompleted] = useState<DailyPot[]>([]);
   const [reports, setReports] = useState<Reports>({});
+  const [group, setGroup] = useState<MissionStatus["kelompok"]>(null);
   const [form, setForm] = useState<FormState>({
     steps: card.steps.map(() => false),
     moisture: "",
@@ -49,11 +51,10 @@ export function InvestigationCardView({ card }: { card: InvestigationCard }) {
     if (!profile) return;
     setStatus("loading");
     try {
-      const res = await fetch(`/api/siswa/misi-harian?siswaId=${profile.id}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      setCompleted(json.selesai);
-      setReports(json.laporan);
+      const mission = await fetchMissionStatus(profile);
+      setGroup(mission.kelompok);
+      setCompleted(mission.selesai);
+      setReports(mission.laporan);
       setStatus("ready");
     } catch {
       setStatus("error");
@@ -120,12 +121,12 @@ export function InvestigationCardView({ card }: { card: InvestigationCard }) {
       const json = await res.json();
       saveStudentProfile({ ...profile, stars: json.bintang });
       setCompleted((done) => [...done, card.pot]);
-      setReports((all) => ({ ...all, [card.pot]: json.laporan }));
+      setReports((all) => ({ ...all, [card.pot]: { ...json.laporan, pengirim: profile.name } }));
       const key = draftKey();
       if (key) localStorage.removeItem(key);
       await showSuccessAlert(
         `Kartu Investigasi #${card.number} Selesai! 🎉`,
-        `Misi Pot Tanaman ${card.pot} di Beranda otomatis tercentang, +${STARS_PER_POT} Bintang!`,
+        `Misi Pot Tanaman ${card.pot} tercentang untuk seluruh kelompokmu, semua anggota +${STARS_PER_POT} Bintang!`,
         1800
       );
     } catch {
@@ -136,7 +137,7 @@ export function InvestigationCardView({ card }: { card: InvestigationCard }) {
   };
 
   const isDone = completed.includes(card.pot);
-  const isNext = DAILY_POTS[completed.length] === card.pot;
+  const isNext = group !== null && DAILY_POTS[completed.length] === card.pot;
   const previousPot = getPreviousPot(card.pot);
 
   return (
@@ -186,7 +187,15 @@ export function InvestigationCardView({ card }: { card: InvestigationCard }) {
         </div>
       )}
 
-      {status === "ready" && !isDone && !isNext && previousPot && (
+      {status === "ready" && !group && (
+        <section className="card text-center space-y-2">
+          <Users className="w-6 h-6 text-ink-600 mx-auto" />
+          <p className="text-sm font-bold text-ink-900">Kamu belum masuk kelompok</p>
+          <p className="text-xs text-ink-600">Kartu Misi dikerjakan per kelompok. Minta gurumu memasukkanmu ke kelompok ya!</p>
+        </section>
+      )}
+
+      {status === "ready" && group && !isDone && !isNext && previousPot && (
         <section className="card text-center space-y-2.5">
           <Lock className="w-6 h-6 text-ink-600 mx-auto" />
           <p className="text-sm font-bold text-ink-900">Kartu ini masih terkunci</p>
@@ -344,14 +353,29 @@ function CompletedReport({ card, report, reports }: { card: InvestigationCard; r
       <section className="rounded-3xl border-2 border-green-300 bg-green-100/70 p-4 flex items-center gap-3">
         <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
         <p className="text-sm font-bold text-green-800">
-          Kartu selesai! Misi Pot Tanaman {card.pot} di Beranda sudah tercentang.
+          Kartu selesai! Misi Pot Tanaman {card.pot} sudah tercentang untuk seluruh kelompokmu.
         </p>
+      </section>
+
+      <section className="card space-y-1.5">
+        <h3 className="font-heading font-extrabold text-sm sm:text-base text-green-700">Penilaian Guru</h3>
+        {typeof report.nilai === "number" ? (
+          <>
+            <p className="font-heading font-extrabold text-2xl text-ink-900">{report.nilai}<span className="text-sm text-ink-600"> / 100</span></p>
+            {report.umpanBalik && (
+              <p className="text-sm text-ink-900 leading-relaxed whitespace-pre-wrap">{report.umpanBalik}</p>
+            )}
+          </>
+        ) : (
+          <p className="text-xs text-ink-600">Laporanmu sedang menunggu dinilai guru.</p>
+        )}
       </section>
 
       <section className="card space-y-2">
         <h3 className="font-heading font-extrabold text-sm sm:text-base text-green-700 flex items-center gap-1.5">
-          <Radio className="w-4 h-4" /> Laporanmu
+          <Radio className="w-4 h-4" /> Laporan Kelompok
         </h3>
+        {report.pengirim && <p className="text-xs text-ink-600">Dikirim oleh {report.pengirim}</p>}
         <ul className="text-xs sm:text-sm text-ink-900 space-y-1">
           <li>Kelembapan tanah: <strong>{report.moisture}%</strong></li>
           {report.moistureAfter !== undefined && <li>Setelah disiram: <strong>{report.moistureAfter}%</strong></li>}

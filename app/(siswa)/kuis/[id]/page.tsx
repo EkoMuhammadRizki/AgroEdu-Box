@@ -10,7 +10,7 @@ import {
   Check, X, RefreshCw, Printer, Maximize2, ArrowRight
 } from "lucide-react";
 import { showSuccessAlert, showWarningAlert, showConfirmDialog, showToast } from "@/lib/swal";
-import { getStudentProfile, updateStudentProgress } from "@/lib/student-session";
+import { addStudentStars } from "@/lib/student-session";
 import { BrandIcon } from "@/components/agro/brand-logo";
 import Link from "next/link";
 
@@ -78,11 +78,7 @@ export default function KuisPage() {
       setSubmitted(true);
 
       // Add stars reward to session
-      const profile = getStudentProfile();
-      if (profile) {
-        const bonus = calculatedScore >= 80 ? 50 : 30;
-        updateStudentProgress({ stars: profile.stars + bonus });
-      }
+      addStudentStars(calculatedScore >= 80 ? 50 : 30);
 
       if (calculatedScore >= 80) {
         await showSuccessAlert(

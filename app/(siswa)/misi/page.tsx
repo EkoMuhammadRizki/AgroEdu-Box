@@ -1,16 +1,20 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
-import { Check, ClipboardCheck, Lock, Sparkles } from "lucide-react";
+import { Check, ClipboardCheck, Lock, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getStudentProfile } from "@/lib/student-session";
 import { DAILY_POTS, STARS_PER_POT, type DailyPot } from "@/lib/daily-missions";
 import { INVESTIGATION_CARDS } from "@/lib/investigation-cards";
+import { fetchMissionStatus, type MissionStatus } from "@/lib/mission-status";
 
 export default function MisiPage() {
   const [character, setCharacter] = useState<"original" | "girl">("original");
   const [completed, setCompleted] = useState<DailyPot[]>([]);
+  const [group, setGroup] = useState<MissionStatus["kelompok"]>(null);
+  const [members, setMembers] = useState<string[]>([]);
+  const [reports, setReports] = useState<MissionStatus["laporan"]>({});
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
   const load = async () => {
@@ -19,9 +23,11 @@ export default function MisiPage() {
     setCharacter(profile.character);
     setStatus("loading");
     try {
-      const res = await fetch(`/api/siswa/misi-harian?siswaId=${profile.id}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setCompleted((await res.json()).selesai);
+      const mission = await fetchMissionStatus(profile);
+      setGroup(mission.kelompok);
+      setMembers(mission.anggota);
+      setReports(mission.laporan);
+      setCompleted(mission.selesai);
       setStatus("ready");
     } catch {
       setStatus("error");
@@ -36,7 +42,7 @@ export default function MisiPage() {
     <AppShell role="siswa">
       <PageHeader
         title="Kartu Misi & Tugas Digital"
-        description="Selesaikan 4 Kartu Investigasi secara berurutan, dari Pot A sampai Pot D."
+        description="Selesaikan 4 Kartu Investigasi bersama kelompokmu, dari Pot A sampai Pot D."
       />
 
       <ContentWrapper className="space-y-6 pb-8">
@@ -49,7 +55,7 @@ export default function MisiPage() {
               Kumpulkan Bukti Ilmiah Tanamanmu! 🌿
             </h2>
             <p className="text-xs sm:text-sm text-ink-600 max-w-md leading-relaxed">
-              Kerjakan langkah di setiap kartu, catat data sensor, lalu jawab pertanyaannya. Misi di Beranda akan tercentang otomatis.
+              Kerjakan bersama kelompokmu: cukup satu anggota yang mengirim, misi tercentang untuk semua dan setiap anggota mendapat bintang.
             </p>
           </div>
           <div className="flex-shrink-0">
@@ -75,7 +81,26 @@ export default function MisiPage() {
         <div className="space-y-4">
           <h3 className="font-heading font-extrabold text-lg text-ink-900 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-yellow-500" /> Kartu Investigasi
+            {group && (
+              <span className="px-2.5 py-0.5 rounded-pill bg-green-100 text-green-700 text-[11px] font-heading font-extrabold">
+                {group.nama}
+              </span>
+            )}
           </h3>
+
+          {group && (
+            <p className="text-xs text-ink-600 leading-relaxed">
+              <strong>Anggota kelompokmu:</strong> {members.join(", ")}
+            </p>
+          )}
+
+          {status === "ready" && !group && (
+            <div className="card text-center space-y-1.5">
+              <Users className="w-6 h-6 text-ink-600 mx-auto" />
+              <p className="text-sm font-bold text-ink-900">Kamu belum masuk kelompok</p>
+              <p className="text-xs text-ink-600">Minta gurumu memasukkanmu ke kelompok supaya bisa mengerjakan kartu.</p>
+            </div>
+          )}
 
           {status === "error" && (
             <div className="card text-center space-y-2">
@@ -90,7 +115,7 @@ export default function MisiPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {INVESTIGATION_CARDS.map((card, index) => {
                 const isDone = completed.includes(card.pot);
-                const isNext = index === completed.length;
+                const isNext = group !== null && index === completed.length;
                 return (
                   <Link
                     key={card.pot}
@@ -118,7 +143,12 @@ export default function MisiPage() {
                               : "bg-[#EAEFE6] text-ink-600"
                         }`}
                       >
-                        {isDone && <><Check className="w-3 h-3 stroke-[3]" /> Selesai</>}
+                        {isDone && (
+                          <>
+                            <Check className="w-3 h-3 stroke-[3]" />
+                            {typeof reports[card.pot]?.nilai === "number" ? `Selesai · Nilai ${reports[card.pot]?.nilai}` : "Selesai"}
+                          </>
+                        )}
                         {!isDone && isNext && <>Kerjakan sekarang (+{STARS_PER_POT} ⭐)</>}
                         {!isDone && !isNext && <><Lock className="w-3 h-3" /> Terkunci</>}
                       </span>

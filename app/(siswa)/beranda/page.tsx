@@ -14,12 +14,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getStudentProfile } from "@/lib/student-session";
 import { DAILY_POTS, STARS_PER_POT, type DailyPot } from "@/lib/daily-missions";
+import { fetchMissionStatus, type MissionStatus } from "@/lib/mission-status";
 
 export default function BerandaSiswaPage() {
   const [studentName, setStudentName] = useState("Andi");
   const [character, setCharacter] = useState<"original" | "girl">("original");
   const [device, setDevice] = useState(mockDevices[0]);
   const [completedPots, setCompletedPots] = useState<DailyPot[]>([]);
+  const [group, setGroup] = useState<MissionStatus["kelompok"]>(null);
   const [missionsStatus, setMissionsStatus] = useState<"loading" | "ready" | "error">("loading");
 
   const loadDailyMissions = async () => {
@@ -27,10 +29,9 @@ export default function BerandaSiswaPage() {
     if (!profile) return;
     setMissionsStatus("loading");
     try {
-      const res = await fetch(`/api/siswa/misi-harian?siswaId=${profile.id}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { selesai } = await res.json();
-      setCompletedPots(selesai);
+      const mission = await fetchMissionStatus(profile);
+      setGroup(mission.kelompok);
+      setCompletedPots(mission.selesai);
       setMissionsStatus("ready");
     } catch {
       setMissionsStatus("error");
@@ -202,7 +203,9 @@ export default function BerandaSiswaPage() {
               <p className="text-[11px] sm:text-xs text-ink-600 mb-2.5">
                 {completedPots.length === DAILY_POTS.length
                   ? "Hebat! Semua Kartu Misi sudah selesai. 🌱"
-                  : "Selesaikan Kartu Misi berurutan, nanti misinya tercentang otomatis:"}
+                  : group
+                    ? `${group.nama}: selesaikan Kartu Misi berurutan, nanti tercentang otomatis.`
+                    : "Kamu belum masuk kelompok. Minta gurumu memasukkanmu ke kelompok ya!"}
               </p>
 
               {missionsStatus === "loading" && (
@@ -222,7 +225,7 @@ export default function BerandaSiswaPage() {
               <div className="space-y-2">
                 {DAILY_POTS.map((pot, index) => {
                   const isDone = completedPots.includes(pot);
-                  const isNext = index === completedPots.length;
+                  const isNext = group !== null && index === completedPots.length;
                   const rowClass = `w-full p-2.5 sm:p-3 rounded-2xl border-2 transition-all flex items-center justify-between gap-2.5 ${
                     isDone
                       ? "bg-green-100/60 border-green-300 text-green-800"

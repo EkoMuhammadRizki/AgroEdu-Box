@@ -24,6 +24,11 @@ export interface CardReport {
   temperature: number;
   buzzer: BuzzerStatus;
   answers: string[];
+  /** Nama anggota yang mengirim; ditambahkan server saat laporan dibaca. */
+  pengirim?: string;
+  /** Penilaian guru; ditambahkan server saat laporan dibaca. */
+  nilai?: number | null;
+  umpanBalik?: string | null;
 }
 
 const MIN_ANSWER_LENGTH = 15;

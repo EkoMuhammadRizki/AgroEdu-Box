@@ -2,9 +2,22 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-server";
 import { isUuid } from "@/lib/student-session";
 import { STARS_PER_POT } from "@/lib/daily-missions";
-import { checkCardReport, getInvestigationCard } from "@/lib/investigation-cards";
+import { checkCardReport, getInvestigationCard, type CardReport } from "@/lib/investigation-cards";
 
 export const dynamic = "force-dynamic";
+
+interface SiswaRow {
+  bintang: number;
+  kelompok: { id: string; nama: string } | null;
+}
+
+interface MisiRow {
+  pot: string;
+  laporan: CardReport;
+  nilai: number | null;
+  umpan_balik: string | null;
+  siswa: { nama: string } | null;
+}
 
 export async function GET(request: Request) {
   try {
@@ -13,20 +26,47 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: "Data siswa tidak valid" }, { status: 400 });
     }
 
-    const { data, error } = await getSupabaseAdmin()
-      .from("misi_harian")
-      .select("pot, laporan")
-      .eq("siswa_id", siswaId);
+    const supabase = getSupabaseAdmin();
+    const { data: siswa, error } = await supabase
+      .from("siswa")
+      .select("bintang, kelompok(id, nama)")
+      .eq("id", siswaId)
+      .maybeSingle()
+      .overrideTypes<SiswaRow, { merge: false }>();
     if (error) throw error;
+    if (!siswa) {
+      return NextResponse.json({ success: false, error: "Siswa tidak ditemukan" }, { status: 404 });
+    }
+    if (!siswa.kelompok) {
+      return NextResponse.json({ success: true, kelompok: null, anggota: [], selesai: [], laporan: {}, bintang: siswa.bintang });
+    }
+
+    const [{ data: rows, error: rowsError }, { data: anggota, error: anggotaError }] = await Promise.all([
+      supabase
+        .from("misi_kelompok")
+        .select("pot, laporan, nilai, umpan_balik, siswa(nama)")
+        .eq("kelompok_id", siswa.kelompok.id)
+        .overrideTypes<MisiRow[], { merge: false }>(),
+      supabase.from("siswa").select("nama").eq("kelompok_id", siswa.kelompok.id).order("nama"),
+    ]);
+    if (rowsError || anggotaError) throw rowsError ?? anggotaError;
 
     return NextResponse.json({
       success: true,
-      selesai: data.map((row) => row.pot),
-      laporan: Object.fromEntries(data.map((row) => [row.pot, row.laporan])),
+      kelompok: siswa.kelompok,
+      anggota: (anggota ?? []).map((row) => row.nama),
+      selesai: (rows ?? []).map((row) => row.pot),
+      laporan: Object.fromEntries(
+        (rows ?? []).map((row) => [
+          row.pot,
+          { ...row.laporan, pengirim: row.siswa?.nama, nilai: row.nilai, umpanBalik: row.umpan_balik },
+        ])
+      ),
+      bintang: siswa.bintang,
     });
   } catch (err) {
     console.error("GET /api/siswa/misi-harian", err);
-    return NextResponse.json({ success: false, error: "Gagal memuat misi harian" }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Gagal memuat misi" }, { status: 500 });
   }
 }
 
@@ -41,10 +81,10 @@ export async function POST(request: Request) {
 
     const { errors, report } = checkCardReport(card, laporan);
     if (!report) {
-      return NextResponse.json({ success: false, error: "Laporan belum sesuai panduan", errors }, { status: 422 });
+      return NextResponse.json({ success: false, error: "Laporan belum lengkap", errors }, { status: 422 });
     }
 
-    const { data: bintang, error } = await getSupabaseAdmin().rpc("selesaikan_misi_harian", {
+    const { data: bintang, error } = await getSupabaseAdmin().rpc("selesaikan_misi_kelompok", {
       p_siswa_id: siswaId,
       p_pot: card.pot,
       p_bintang: STARS_PER_POT,
@@ -52,7 +92,7 @@ export async function POST(request: Request) {
     });
     if (error) throw error;
     if (bintang === null) {
-      return NextResponse.json({ success: false, error: "Bukan giliran pot ini" }, { status: 409 });
+      return NextResponse.json({ success: false, error: "Kartu ini tidak bisa dikirim" }, { status: 409 });
     }
 
     return NextResponse.json({ success: true, bintang, laporan: report });

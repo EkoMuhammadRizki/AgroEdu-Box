@@ -10,7 +10,7 @@ import {
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { showSuccessAlert, showConfirmDialog, showToast } from "@/lib/swal";
-import { updateStudentProgress } from "@/lib/student-session";
+import { updateStudentCharacter } from "@/lib/student-session";
 
 export default function ProfilPage() {
   const [studentName, setStudentName] = useState("Andi Pratama");
@@ -40,7 +40,7 @@ export default function ProfilPage() {
   const handleToggleCharacter = async () => {
     const nextChar = character === "original" ? "girl" : "original";
     setCharacter(nextChar);
-    updateStudentProgress({ character: nextChar });
+    updateStudentCharacter(nextChar);
     showToast(`Karakter diganti menjadi BiBoo ${nextChar === "girl" ? "Girl" : "Original"}!`, "success", 1600);
   };
 
