@@ -299,11 +299,27 @@ void kirimData() {
   } else {
     Serial.print("Gagal kirim, kode ");
     Serial.print(kode);
-    if (kode == 401)      Serial.println(" (token salah, periksa INGEST_TOKEN)");
-    else if (kode == 503) Serial.println(" (IOT_INGEST_TOKEN belum diisi di Vercel)");
-    else if (kode == 400) Serial.println(" (angka sensor di luar batas wajar)");
-    else if (kode < 0)    Serial.println(" (tidak sampai ke website, periksa WiFi)");
-    else                  Serial.println();
+    if (kode == 401) {
+      Serial.println(" (token salah)");
+      Serial.println("  INGEST_TOKEN di secrets.h harus sama persis dengan IOT_INGEST_TOKEN di Vercel.");
+    } else if (kode == 503) {
+      Serial.println(" (server menolak)");
+      Serial.println("  IOT_INGEST_TOKEN belum diisi di Vercel, atau belum Redeploy setelah diisi.");
+    } else if (kode == 400) {
+      Serial.println(" (angka sensor di luar batas wajar)");
+      Serial.println("  Periksa kalibrasi BATAS_KERING dan BATAS_BASAH.");
+    } else if (kode < 0) {
+      Serial.print(" (");
+      Serial.print(HTTPClient::errorToString(kode));
+      Serial.println(")");
+      Serial.println("  Paket tidak sampai ke website. Penyebab paling sering: hotspot menyala");
+      Serial.println("  tetapi kuota data HP mati, jadi ada WiFi tanpa internet.");
+      Serial.println("  Uji cepat: sambungkan laptop ke hotspot yang sama, lalu buka");
+      Serial.println("  https://agro-edu-box.vercel.app di browser. Kalau laptop juga tidak bisa");
+      Serial.println("  membukanya, berarti hotspotnya memang belum punya internet.");
+    } else {
+      Serial.println();
+    }
   }
   http.end();
 }
