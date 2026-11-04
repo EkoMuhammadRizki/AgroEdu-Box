@@ -23,7 +23,7 @@ AGRO EDU BOX adalah platform pembelajaran agrikultur berbasis IoT untuk siswa da
 
 - **Dua peran utama:** Siswa dan Guru (+ Administrator untuk pengaturan perangkat/akses).
 - **Siklus belajar:** materi → praktik → bukti → asesmen → refleksi → umpan balik.
-- **IoT:** ESP32 + sensor fisik (kelembapan tanah, suhu/kelembapan udara, cahaya). Setiap data punya waktu pembacaan dan identitas perangkat.
+- **IoT:** Arduino/ESP + sensor fisik (kelembapan tanah A0 & suhu udara DHT22). Setiap data punya waktu pembacaan dan identitas perangkat.
 - **Satu web responsif** untuk laptop dan HP.
 - **AGRO EDU TRACK:** area guru untuk memantau kelas, menilai, dan menindaklanjuti.
 
@@ -142,7 +142,7 @@ Pencarian, filter topik, kartu modul, status selesai/belum, durasi/jenis aktivit
 Urutan: **tujuan pembelajaran → materi inti → gambar/video → aktivitas → pertanyaan → kuis/refleksi → status selesai.** Catat status & waktu penyelesaian per siswa.
 
 ### 4.5 Lab IoT & dashboard sensor
-- **Komponen:** identitas perangkat, status koneksi, suhu, kelembapan tanah, kelembapan udara, cahaya, waktu data terakhir, grafik, catatan pengamatan.
+- **Komponen:** identitas perangkat, status koneksi, suhu udara, kelembapan tanah, waktu data terakhir, grafik, catatan pengamatan.
 - **Aturan penting:**
   - Pisahkan tampilan **real-time**, **data terakhir tersimpan**, dan **data simulasi**.
   - Sensor terputus **tidak boleh** menampilkan angka lama seolah baru. Tampilkan "Data terakhir • {waktu}" atau "Belum ada data".

@@ -77,7 +77,7 @@ app/
 
 ### 4.2 Dashboard Siswa — `/beranda`
 - **Fungsi:** menunjukkan langkah berikutnya.
-- **Komponen:** sapaan ("Halo, Andi!"), 4 kartu sensor (Suhu, Kelembapan tanah, Kelembapan udara, Cahaya), kartu **Tanaman/Kelas** (status & ringkasan), **Aktivitas terbaru** (materi/tugas, data diperbarui, umpan balik), grafik **Riwayat sensor / progres belajar**, ringkasan materi selesai, misi, skor kuis terakhir, status perangkat, eksperimen aktif.
+- **Komponen:** sapaan ("Halo, Andi!"), 2 kartu sensor (Suhu Udara, Kelembapan Tanah), kartu **Tanaman/Kelas** (status & ringkasan), **Aktivitas terbaru** (materi/tugas, data diperbarui, umpan balik), grafik **Riwayat sensor / progres belajar**, ringkasan materi selesai, misi, skor kuis terakhir, status perangkat, eksperimen aktif.
 - **Catatan:** tampilkan hanya indikator yang membantu tindakan; hindari terlalu banyak grafik.
 
 ### 4.3 Daftar Materi — `/materi`
@@ -87,7 +87,7 @@ app/
 - **Komponen:** tujuan pembelajaran, materi inti, gambar/video, aktivitas, pertanyaan, kuis/refleksi, status penyelesaian.
 
 ### 4.5 Lab IoT — `/lab-iot`
-- **Komponen:** identitas perangkat, status koneksi, suhu, kelembapan tanah, kelembapan udara, cahaya, waktu data terakhir, grafik, catatan pengamatan.
+- **Komponen:** identitas perangkat, status koneksi, suhu udara, kelembapan tanah, waktu data terakhir, grafik, catatan pengamatan.
 - **Aturan kritis:**
   - Pisahkan **real-time**, **data terakhir tersimpan**, dan **simulasi**.
   - Sensor terputus **tidak boleh** menampilkan angka lama seolah baru.
