@@ -34,7 +34,7 @@ const GURU_NAV: NavItem[] = [
   { href: "/guru/tugas", label: "Tugas & Misi", shortLabel: "Tugas", icon: ClipboardList },
   { href: "/guru/lkpd", label: "Lembar Kerja", shortLabel: "LKPD", icon: FileText },
   { href: "/guru/laporan", label: "Laporan & Nilai", shortLabel: "Laporan", icon: BarChart3 },
-  { href: "/guru/pengaturan", label: "Pengaturan IoT", shortLabel: "Setting", icon: Settings },
+  { href: "/guru/pengaturan", label: "Pengaturan", shortLabel: "Atur", icon: Settings },
 ];
 
 interface SidebarProps {

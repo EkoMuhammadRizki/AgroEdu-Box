@@ -60,7 +60,7 @@ const unsigned long JEDA_KIRIM   = 10000;  // kirim ke website tiap 10 detik
 const unsigned long JEDA_LCD     = 2500;   // ganti pot di layar tiap 2,5 detik
 const unsigned long JEDA_ALARM   = 10000;  // bunyi pengingat tiap 10 detik
 const unsigned long LAMA_BIP     = 180;    // panjang satu bunyi
-const unsigned long JEDA_WIFI    = 5000;   // coba sambung ulang WiFi tiap 5 detik
+const unsigned long JEDA_WIFI    = 15000;  // jeda antar percobaan sambung WiFi
 const unsigned long BATAS_KIRIM  = 10000;  // berhenti menunggu balasan setelah ini
 
 // ─── Objek ──────────────────────────────────────────────────────────────
@@ -76,6 +76,8 @@ bool  adaAlarm = false;
 bool  kirimBerhasil = false;
 
 unsigned long tBaca = 0, tKirim = 0, tLcd = 0, tAlarm = 0, tWifi = 0;
+int  gagalWifi = 0;
+bool wifiSiap = false;
 int potTampil = 0;
 int bipTersisa = 0;
 bool bipMenyala = false;
@@ -189,11 +191,78 @@ void urusAlarm() {
 }
 
 // ─── Jaringan ───────────────────────────────────────────────────────────
+// Menjelaskan sebab kegagalan dengan kalimat biasa, bukan kode angka.
+void jelaskanWifi() {
+  switch (WiFi.status()) {
+    case WL_NO_SSID_AVAIL:
+      Serial.println("  Nama WiFi tidak ditemukan. Periksa WIFI_SSID di secrets.h");
+      Serial.println("  (huruf besar-kecil harus sama persis), dan pastikan jaringannya menyala.");
+      break;
+    case WL_CONNECT_FAILED:
+      Serial.println("  Kata sandi WiFi salah. Periksa WIFI_PASSWORD di secrets.h.");
+      break;
+    case WL_IDLE_STATUS:
+    case WL_DISCONNECTED:
+      Serial.println("  Belum tersambung, mencoba lagi...");
+      break;
+    default:
+      Serial.print("  Status WiFi: ");
+      Serial.println(WiFi.status());
+  }
+}
+
+// Menampilkan jaringan yang benar-benar terlihat ESP32. Ini cara tercepat
+// mengetahui apakah nama WiFi salah ketik atau jaringannya memang 5 GHz.
+void daftarWifiTerlihat() {
+  Serial.println();
+  Serial.println("Jaringan WiFi 2,4 GHz yang terlihat ESP32:");
+  int jumlah = WiFi.scanNetworks();
+  if (jumlah <= 0) {
+    Serial.println("  (tidak ada satu pun)");
+  } else {
+    for (int i = 0; i < jumlah; i++) {
+      Serial.print("  - \"");
+      Serial.print(WiFi.SSID(i));
+      Serial.print("\"  kekuatan ");
+      Serial.print(WiFi.RSSI(i));
+      Serial.println(" dBm");
+    }
+  }
+  WiFi.scanDelete();
+  Serial.print("Yang dicari firmware: \"");
+  Serial.print(WIFI_SSID);
+  Serial.println("\"");
+  Serial.println("Kalau nama itu tidak ada di daftar, berarti jaringannya belum menyala,");
+  Serial.println("namanya beda, atau jaringannya 5 GHz (ESP32 hanya bisa 2,4 GHz).");
+  Serial.println();
+}
+
 void sambungWifi() {
-  if (WiFi.status() == WL_CONNECTED) return;
-  Serial.println("Menyambung WiFi...");
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!wifiSiap) {
+      wifiSiap = true;
+      gagalWifi = 0;
+      Serial.print("WiFi tersambung. Alamat IP: ");
+      Serial.println(WiFi.localIP());
+    }
+    return;
+  }
+
+  wifiSiap = false;
+  if (gagalWifi > 0) jelaskanWifi();
+  gagalWifi++;
+
+  // Jangan memanggil WiFi.begin() terlalu sering. Jabat tangan WiFi butuh
+  // beberapa detik, dan memanggilnya lagi di tengah proses justru mengulang
+  // dari awal sehingga sambungan tidak pernah selesai.
+  Serial.print("Menyambung ke WiFi \"");
+  Serial.print(WIFI_SSID);
+  Serial.println("\"...");
+  WiFi.disconnect();
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  if (gagalWifi == 3) daftarWifiTerlihat();
 }
 
 void kirimData() {

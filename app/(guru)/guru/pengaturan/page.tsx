@@ -1,293 +1,205 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
-import {
-  Save, Cpu, Shield,
-  Check, Sliders, Info
-} from "lucide-react";
-import { useState, useEffect } from "react";
-import { showSuccessAlert } from "@/lib/swal";
-import { getGuruName, getGuruEmail, saveGuruProfile } from "@/lib/guru-client";
+import { usePots } from "@/lib/use-pots";
+import { formatLastSeen, readSensor } from "@/lib/iot";
+import { SOIL_DRY_BELOW, SOIL_OK_FROM, SOIL_WET_ABOVE } from "@/lib/pot-mood";
+import { getGuruEmail, getGuruName, saveGuruProfile } from "@/lib/guru-client";
+import { showSuccessAlert, showWarningAlert } from "@/lib/swal";
+import { Save, Shield, Cpu, Info } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function GuruPengaturanPage() {
-  const [teacherName, setTeacherName] = useState("");
-  const [teacherEmail, setTeacherEmail] = useState("");
-  const [schoolName, setSchoolName] = useState("SMK Pertanian Negeri 1");
-  const [telemetryInterval, setTelemetryInterval] = useState("60");
-  const [offlineThreshold, setOfflineThreshold] = useState("180");
-  const [apiToken, setApiToken] = useState("aeb_live_token_77a94f091bc389d4");
-  const [isSaved, setIsSaved] = useState(false);
+  const [nama, setNama] = useState("");
+  const [email, setEmail] = useState("");
+  const [menyimpan, setMenyimpan] = useState(false);
+  const pots = usePots(10000);
 
   useEffect(() => {
-    // 1. Inisialisasi cepat dari client-side storage
-    const localName = getGuruName();
-    if (localName) setTeacherName(localName);
+    const lokalNama = getGuruName();
+    if (lokalNama) setNama(lokalNama);
+    const lokalEmail = getGuruEmail();
+    if (lokalEmail) setEmail(lokalEmail);
 
-    const localEmail = getGuruEmail();
-    if (localEmail) setTeacherEmail(localEmail);
-
-    try {
-      const storedSchool = localStorage.getItem("agro_guru_school");
-      if (storedSchool) setSchoolName(storedSchool);
-    } catch {
-      // ignore
-    }
-
-    // 2. Sinkronkan dengan data akun guru dari server session Supabase
     fetch("/api/guru/me")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.guru) {
-          if (data.guru.nama) {
-            setTeacherName(data.guru.nama);
-            saveGuruProfile({ nama: data.guru.nama });
-          }
-          if (data.guru.email) {
-            setTeacherEmail(data.guru.email);
-            saveGuruProfile({ email: data.guru.email });
-          }
+        if (!data?.guru) return;
+        if (data.guru.nama) {
+          setNama(data.guru.nama);
+          saveGuruProfile({ nama: data.guru.nama });
+        }
+        if (data.guru.email) {
+          setEmail(data.guru.email);
+          saveGuruProfile({ email: data.guru.email });
         }
       })
       .catch(() => {});
   }, []);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const simpan = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaved(true);
-
-    // Simpan ke local client
-    saveGuruProfile({ nama: teacherName, email: teacherEmail });
-    try {
-      localStorage.setItem("agro_guru_school", schoolName);
-    } catch {
-      // ignore
+    if (!nama.trim()) {
+      await showWarningAlert("Nama Belum Diisi", "Isi nama Anda lebih dulu ya.");
+      return;
     }
-
-    // Perbarui nama di database jika tersambung
+    setMenyimpan(true);
     try {
-      await fetch("/api/guru/me", {
+      const res = await fetch("/api/guru/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama: teacherName }),
+        body: JSON.stringify({ nama: nama.trim() }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      saveGuruProfile({ nama: nama.trim() });
+      await showSuccessAlert("Tersimpan!", "Nama Anda sudah diperbarui.", 1400);
     } catch {
-      // ignore
+      await showWarningAlert("Belum Tersimpan", "Periksa koneksi internet lalu coba lagi.");
     }
-
-    await showSuccessAlert(
-      "Pengaturan Berhasil Disimpan!",
-      "Profil guru dan konfigurasi IoT telah diperbarui.",
-      1600
-    );
-    setTimeout(() => setIsSaved(false), 3000);
+    setMenyimpan(false);
   };
+
+  const menyala = pots.filter((p) => p.status === "online").length;
 
   return (
     <AppShell role="guru">
-      <PageHeader
-        title="Pengaturan Sistem & IoT"
-        description="Konfigurasi parameter ESP32, token telemetri, ambang kalibrasi tanaman, dan profil akun guru."
-      />
+      <PageHeader title="Pengaturan" description="Profil akun Anda dan kondisi alat IoT di kelas." />
 
-      <ContentWrapper className="pb-16 max-w-4xl space-y-6">
-        {isSaved && (
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-            <Check className="h-4 w-4 text-emerald-600" />
-            Pengaturan sistem dan kalibrasi berhasil disimpan!
-          </div>
-        )}
-
-        <form onSubmit={handleSave} className="space-y-6">
-          {/* 1. Profil Guru & Sekolah */}
-          <div className="card space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-line">
-              <Shield className="h-4 w-4 text-guru-700" />
-              <h3 className="text-sm font-bold text-ink">Profil Guru & Lembaga</h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-semibold text-ink block mb-1">Nama Lengkap & Gelar</label>
-                <input
-                  type="text"
-                  required
-                  value={teacherName}
-                  placeholder="Nama Guru"
-                  onChange={(e) => setTeacherName(e.target.value)}
-                  className="input-field text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-ink block mb-1">Nama Sekolah / Instansi</label>
-                <input
-                  type="text"
-                  required
-                  value={schoolName}
-                  placeholder="Nama Sekolah"
-                  onChange={(e) => setSchoolName(e.target.value)}
-                  className="input-field text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-ink block mb-1">Email Guru (Akun Terdaftar)</label>
-                <input
-                  type="email"
-                  disabled
-                  value={teacherEmail || "guru.agroedubox@gmail.com"}
-                  className="input-field text-xs bg-surface-muted text-ink-muted cursor-not-allowed font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-ink block mb-1">Peran Akses</label>
-                <input
-                  type="text"
-                  disabled
-                  value="Guru Pembimbing (AGRO EDU TRACK)"
-                  className="input-field text-xs bg-surface-muted text-ink-muted cursor-not-allowed"
-                />
-              </div>
-            </div>
+      <ContentWrapper className="pb-16 max-w-4xl space-y-5">
+        {/* Profil guru */}
+        <form onSubmit={simpan} className="card space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b border-line">
+            <Shield className="h-4 w-4 text-[var(--accent)]" />
+            <h2 className="text-sm font-bold text-ink">Profil Akun Guru</h2>
           </div>
 
-          {/* 2. Pengaturan Ingest Telemetri ESP32 */}
-          <div className="card space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-line">
-              <Cpu className="h-4 w-4 text-guru-700" />
-              <h3 className="text-sm font-bold text-ink">Konfigurasi Jaringan & Telemetri ESP32</h3>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-ink block mb-1">Token Autentikasi Ingest Telemetri</label>
-                <div className="flex gap-2">
-                  <input
-                    type="password"
-                    disabled
-                    value={apiToken}
-                    className="input-field text-xs font-mono bg-surface-muted text-ink-muted cursor-not-allowed flex-1"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard?.writeText(apiToken);
-                      alert("Token disalin ke papan klip!");
-                    }}
-                    className="btn-ghost text-xs px-3"
-                  >
-                    Salin
-                  </button>
-                </div>
-                <p className="text-[11px] text-ink-muted mt-1 leading-relaxed">
-                  Gunakan token ini pada header HTTP POST <code className="font-mono text-ink">X-Box-Token</code> saat ESP32 mengirim paket telemetri ke endpoint <code className="font-mono text-ink">/api/iot/ingest</code>.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-ink block mb-1">Frekuensi Transmisi Telemetri</label>
-                  <select
-                    value={telemetryInterval}
-                    onChange={(e) => setTelemetryInterval(e.target.value)}
-                    className="input-field text-xs"
-                  >
-                    <option value="30">Setiap 30 Detik (Mode Eksperimen Cepat)</option>
-                    <option value="60">Setiap 1 Menit (Rekomendasi Standar)</option>
-                    <option value="300">Setiap 5 Menit (Hemat Daya / Baterai)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-ink block mb-1">Batas Waktu Status Offline</label>
-                  <select
-                    value={offlineThreshold}
-                    onChange={(e) => setOfflineThreshold(e.target.value)}
-                    className="input-field text-xs"
-                  >
-                    <option value="120">2 Jam Tanpa Data</option>
-                    <option value="180">3 Jam Tanpa Data (Default)</option>
-                    <option value="360">6 Jam Tanpa Data</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Parameter Kalibrasi Sensor Per Tanaman */}
-          <div className="card space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-line">
-              <div className="flex items-center gap-2">
-                <Sliders className="h-4 w-4 text-guru-700" />
-                <h3 className="text-sm font-bold text-ink">Ambang Batas Kalibrasi Sensor per Komoditas</h3>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/60 flex items-start gap-3">
-              <Info className="h-4 w-4 text-amber-700 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-900 leading-relaxed">
-                <strong>Prinsip Ilmiah AGRO EDU BOX:</strong> Nilai sensor tidak boleh diberi label &quot;baik/buruk&quot; dari angka universal. Nilai di bawah ini digunakan sebagai rentang target referensi bagi siswa untuk membandingkan pembacaan nyata.
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="nama" className="text-xs font-semibold text-ink block mb-1">
+                Nama Lengkap
+              </label>
+              <input
+                id="nama"
+                type="text"
+                value={nama}
+                onChange={(e) => setNama(e.target.value)}
+                placeholder="Nama Anda"
+                className="input-field text-xs"
+              />
+              <p className="text-[11px] text-ink-muted mt-1">
+                Nama ini yang dilihat siswa pada umpan balik LKPD dan Kartu Misi.
               </p>
             </div>
 
-            {/* Kangkung */}
-            <div className="p-3.5 rounded-xl bg-surface-muted border border-line space-y-3">
-              <h4 className="text-xs font-bold text-ink">1. Kangkung Darat (Ipomoea aquatica)</h4>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <label className="text-[11px] text-ink-muted block mb-1">Suhu Target (°C)</label>
-                  <input
-                    type="text"
-                    defaultValue="24.0 - 30.0"
-                    className="input-field text-xs font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] text-ink-muted block mb-1">Kelembapan Media (%)</label>
-                  <input
-                    type="text"
-                    defaultValue="40 - 60"
-                    className="input-field text-xs font-mono"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Bayam Hijau */}
-            <div className="p-3.5 rounded-xl bg-surface-muted border border-line space-y-3">
-              <h4 className="text-xs font-bold text-ink">2. Bayam Hijau (Amaranthus tricolor)</h4>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <label className="text-[11px] text-ink-muted block mb-1">Suhu Target (°C)</label>
-                  <input
-                    type="text"
-                    defaultValue="22.0 - 28.0"
-                    className="input-field text-xs font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] text-ink-muted block mb-1">Kelembapan Media (%)</label>
-                  <input
-                    type="text"
-                    defaultValue="45 - 65"
-                    className="input-field text-xs font-mono"
-                  />
-                </div>
-              </div>
+            <div>
+              <label htmlFor="email" className="text-xs font-semibold text-ink block mb-1">
+                Email Akun
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                readOnly
+                className="input-field text-xs bg-surface-muted text-ink-muted cursor-not-allowed"
+              />
+              <p className="text-[11px] text-ink-muted mt-1">
+                Email dan kata sandi diubah lewat Supabase oleh pengelola sistem.
+              </p>
             </div>
           </div>
 
-          {/* Tombol Simpan */}
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              className="btn-primary text-xs gap-1.5 inline-flex items-center px-6 py-2.5"
-            >
-              <Save className="h-4 w-4" />
-              Simpan Semua Perubahan
+          <div className="flex justify-end">
+            <button type="submit" disabled={menyimpan} className="btn-primary text-xs gap-1.5 inline-flex items-center px-5">
+              <Save className="h-3.5 w-3.5" />
+              {menyimpan ? "Menyimpan..." : "Simpan Nama"}
             </button>
           </div>
         </form>
+
+        {/* Kondisi alat: hanya tampilan, tidak ada yang perlu diatur */}
+        <section className="card space-y-3">
+          <div className="flex items-center justify-between gap-2 pb-3 border-b border-line">
+            <div className="flex items-center gap-2">
+              <Cpu className="h-4 w-4 text-[var(--accent)]" />
+              <h2 className="text-sm font-bold text-ink">Kondisi Alat IoT</h2>
+            </div>
+            <span className="text-xs font-bold text-ink-muted">{menyala}/{pots.length} pot menyala</span>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {pots.map((pot) => {
+              const hidup = pot.status === "online";
+              return (
+                <div
+                  key={pot.id}
+                  data-pot-pengaturan={pot.id}
+                  className={`p-3 rounded-xl border ${hidup ? "bg-green-100/60 border-green-300" : "bg-surface-muted border-line"}`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full ${hidup ? "bg-green-500" : "bg-ink-300"}`} />
+                    <p className="text-xs font-bold text-ink">{pot.name}</p>
+                  </div>
+                  <p className="text-lg font-extrabold text-ink mt-1 tabular-nums">
+                    {hidup ? `${Number(readSensor(pot, "soil_moisture").toFixed(1))}%` : "—"}
+                  </p>
+                  <p className="text-[11px] text-ink-muted leading-snug">
+                    {hidup ? `Suhu ${Number(readSensor(pot, "air_temp").toFixed(1))}°C` : formatLastSeen(pot.lastDataAt)}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-200/20 border border-blue-200">
+            <Info className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
+            <div className="text-[11px] text-ink leading-relaxed space-y-1">
+              <p className="font-bold">Alat ini tidak perlu diatur dari sini.</p>
+              <p>
+                Cukup colokkan daya ESP32 dan tunggu sekitar setengah menit. Angka akan muncul sendiri di
+                halaman Data &amp; Sensor dan di Lab IoT siswa. Bila alat dimatikan atau tidak mengirim data
+                lebih dari 2 menit, semua angkanya otomatis kembali 0 supaya siswa tidak membaca angka lama.
+              </p>
+              <p>
+                Jika alat tidak kunjung muncul, buka Serial Monitor pada Arduino IDE di kecepatan 115200.
+                Pesan di sana sudah menjelaskan sebabnya, misalnya nama WiFi salah atau kata sandi keliru.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Acuan angka, sama dengan LKPD dan alatnya */}
+        <section className="card space-y-3">
+          <div className="pb-3 border-b border-line">
+            <h2 className="text-sm font-bold text-ink">Acuan Kelembapan Tanah</h2>
+            <p className="text-[11px] text-ink-muted mt-0.5">
+              Angka ini sudah ditanam di alat, di LKPD, dan di soal kuis, jadi tidak perlu diubah.
+            </p>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-line">
+            <table className="w-full text-xs">
+              <thead className="bg-surface-muted text-ink-muted">
+                <tr>
+                  <th className="text-left font-semibold px-3 py-2">Kelembapan Tanah</th>
+                  <th className="text-left font-semibold px-3 py-2">Kondisi</th>
+                  <th className="text-left font-semibold px-3 py-2">Tanda pada Alat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  [`Di bawah ${SOIL_DRY_BELOW}%`, "Kering", "LED merah, buzzer berbunyi"],
+                  [`${SOIL_DRY_BELOW}–${SOIL_OK_FROM - 1}%`, "Agak kering", "Belum berbunyi"],
+                  [`${SOIL_OK_FROM}–${SOIL_WET_ABOVE}%`, "Ideal", "LED hijau"],
+                  [`Di atas ${SOIL_WET_ABOVE}%`, "Terlalu basah", "LED merah, buzzer berbunyi"],
+                ].map(([rentang, kondisi, tanda]) => (
+                  <tr key={rentang} className="border-t border-line">
+                    <td className="px-3 py-1.5 font-bold text-ink tabular-nums">{rentang}</td>
+                    <td className="px-3 py-1.5 text-ink">{kondisi}</td>
+                    <td className="px-3 py-1.5 text-ink-muted">{tanda}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </ContentWrapper>
     </AppShell>
   );

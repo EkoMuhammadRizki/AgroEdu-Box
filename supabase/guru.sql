@@ -16,6 +16,10 @@ create table if not exists public.guru (
 alter table public.guru enable row level security;
 revoke all on public.guru from anon, authenticated;
 grant select on public.guru to service_role;
+-- Hanya kolom nama yang boleh diubah lewat aplikasi (halaman Pengaturan guru).
+-- Email dan password_hash sengaja tidak ikut, jadi keduanya hanya bisa diubah
+-- dari Supabase oleh pengelola sistem.
+grant update (nama) on public.guru to service_role;
 
 -- Menambah guru asli (jalankan di SQL Editor, email wajib huruf kecil):
 --
