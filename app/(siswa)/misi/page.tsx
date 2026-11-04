@@ -1,7 +1,7 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
-import { Check, ClipboardCheck, Lock, Sparkles, Users } from "lucide-react";
+import { Check, ClipboardCheck, Lock, IdCard, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getStudentProfile } from "@/lib/student-session";
@@ -80,7 +80,7 @@ export default function MisiPage() {
 
         <div className="space-y-4">
           <h3 className="font-heading font-extrabold text-lg text-ink-900 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-yellow-500" /> Kartu Investigasi
+            <IdCard className="w-5 h-5 text-emerald-600" /> Kartu Investigasi
             {group && (
               <span className="px-2.5 py-0.5 rounded-pill bg-green-100 text-green-700 text-[11px] font-heading font-extrabold">
                 {group.nama}
