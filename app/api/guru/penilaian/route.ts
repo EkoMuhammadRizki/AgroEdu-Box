@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireGuru } from "@/lib/guru-auth";
+import { getGuruId, requireGuru } from "@/lib/guru-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-server";
 import { DAILY_POTS, type DailyPot } from "@/lib/daily-missions";
 
@@ -28,7 +28,12 @@ export async function POST(request: Request) {
 
     const { data, error } = await getSupabaseAdmin()
       .from("misi_kelompok")
-      .update({ nilai, umpan_balik: feedback || null, dinilai_at: new Date().toISOString() })
+      .update({
+        nilai,
+        umpan_balik: feedback || null,
+        dinilai_at: new Date().toISOString(),
+        dinilai_oleh: await getGuruId(),
+      })
       .eq("kelompok_id", kelompokId)
       .eq("pot", pot)
       .select("pot");

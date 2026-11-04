@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getSupabaseAdmin } from "@/lib/supabase-server";
-import { GURU_COOKIE, GURU_SESSION_SECONDS, createGuruSession } from "@/lib/guru-session";
+import { GURU_COOKIE, GURU_REMEMBER_SECONDS, GURU_SESSION_SECONDS, createGuruSession } from "@/lib/guru-session";
 
 export const dynamic = "force-dynamic";
 
@@ -31,13 +31,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Email atau kata sandi salah" }, { status: 401 });
     }
 
+    // Kata sandi tidak pernah disimpan di perangkat. Yang diperpanjang hanya
+    // masa berlaku sesi, jadi guru tidak perlu mengetik apa pun selama 30 hari.
+    const detik = body?.ingatSaya === true ? GURU_REMEMBER_SECONDS : GURU_SESSION_SECONDS;
     const response = NextResponse.json({ success: true, nama: data.nama, email });
-    response.cookies.set(GURU_COOKIE, await createGuruSession(data.id), {
+    response.cookies.set(GURU_COOKIE, await createGuruSession(data.id, detik), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: GURU_SESSION_SECONDS,
+      maxAge: detik,
     });
     return response;
   } catch (err) {

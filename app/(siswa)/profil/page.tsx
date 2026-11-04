@@ -1,89 +1,72 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
-import { mockModules, mockSubmissions, mockActivities } from "@/lib/mock-data";
-import { ActivityList } from "@/components/agro/activity-list";
-import {
-  User, BookOpen, ClipboardCheck, Star, Trophy, Award,
-  Send, ChevronRight, CheckCircle2, Sparkles, RefreshCw
-} from "lucide-react";
+import { ClipboardCheck, Star, Award, Users, RefreshCw, MessageSquare } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { showSuccessAlert, showConfirmDialog, showToast } from "@/lib/swal";
-import { updateStudentCharacter } from "@/lib/student-session";
+import { useCallback, useEffect, useState } from "react";
+import { showToast } from "@/lib/swal";
+import { getStudentProfile, updateStudentCharacter, type StudentProfile } from "@/lib/student-session";
+import { fetchMissionStatus, type MissionStatus } from "@/lib/mission-status";
+import { DAILY_POTS } from "@/lib/daily-missions";
+import { getInvestigationCard } from "@/lib/investigation-cards";
+
+const tanggal = (iso: string) =>
+  new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 
 export default function ProfilPage() {
-  const [studentName, setStudentName] = useState("Andi Pratama");
-  const [className, setClassName] = useState("Kelas 10A – Agribisnis");
-  const [classCode, setClassCode] = useState("AGRO10A");
-  const [character, setCharacter] = useState<"original" | "girl">("original");
-  const [stars, setStars] = useState(0);
-  const [studentNote, setStudentNote] = useState("");
-  const [statusMessage, setStatusMessage] = useState("Sedang Eksperimen Sensor NFT");
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [status, setStatus] = useState<MissionStatus | null>(null);
+  const [gagal, setGagal] = useState(false);
 
-  useEffect(() => {
+  const muat = useCallback(async () => {
+    const tersimpan = getStudentProfile();
+    if (!tersimpan) return;
+    setProfile(tersimpan);
+    setGagal(false);
     try {
-      const stored = localStorage.getItem("agro_student_profile");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.name) setStudentName(parsed.name);
-        if (parsed.className) setClassName(parsed.className);
-        if (parsed.classCode) setClassCode(parsed.classCode);
-        if (parsed.character) setCharacter(parsed.character);
-        if (typeof parsed.stars === "number") setStars(parsed.stars);
-      }
+      setStatus(await fetchMissionStatus(tersimpan));
+      const terbaru = getStudentProfile();
+      if (terbaru) setProfile(terbaru);
     } catch {
-      // ignore
+      setGagal(true);
     }
   }, []);
 
+  useEffect(() => {
+    muat();
+  }, [muat]);
+
   const handleToggleCharacter = async () => {
-    const nextChar = character === "original" ? "girl" : "original";
-    setCharacter(nextChar);
-    updateStudentCharacter(nextChar);
-    showToast(`Karakter diganti menjadi Situnas ${nextChar === "girl" ? "Girl" : "Original"}!`, "success", 1600);
+    if (!profile) return;
+    const next = profile.character === "original" ? "girl" : "original";
+    setProfile({ ...profile, character: next });
+    await updateStudentCharacter(next);
+    showToast(`Karakter diganti menjadi Situnas ${next === "girl" ? "Girl" : "Original"}!`, "success", 1600);
   };
 
-  const handleSendFeedback = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!studentNote.trim()) {
-      showToast("Tulis pesan atau pertanyaanmu terlebih dahulu.", "info");
-      return;
-    }
+  // Hanya kartu yang sudah dinilai guru yang punya umpan balik.
+  const umpanBalik = DAILY_POTS.flatMap((pot) => {
+    const laporan = status?.laporan[pot];
+    if (!laporan || (laporan.nilai === null && !laporan.umpanBalik)) return [];
+    return [{ pot, ...laporan }];
+  }).sort((a, b) => (b.dinilaiAt ?? "").localeCompare(a.dinilaiAt ?? ""));
 
-    const confirm = await showConfirmDialog({
-      title: "Kirim Refleksi ke Guru?",
-      text: "Pertanyaan atau catatanmu akan langsung masuk ke dashboard AGRO EDU TRACK Pak Eko.",
-      icon: "question",
-      confirmButtonText: "Ya, Kirim Pesan",
-      cancelButtonText: "Batal",
-      role: "siswa",
-    });
-
-    if (confirm.isConfirmed) {
-      setStudentNote("");
-      await showSuccessAlert(
-        "Pesan Terkirim! ✉️",
-        "Refleksi belajarmu telah dikirimkan ke guru pembimbing.",
-        1600
-      );
-    }
-  };
+  const selesai = status?.selesai.length ?? 0;
 
   return (
     <AppShell role="siswa">
       <PageHeader
         title="Profil Petani Muda"
-        description="Pantau pencapaian bintang, sertifikat, riwayat kuis, dan bimbingan guru."
+        description="Pantau bintang, Kartu Misi, nilai kuis, dan bimbingan dari gurumu."
       />
 
       <ContentWrapper className="space-y-6 pb-10">
-        {/* Profile Card Hero */}
+        {/* Kartu profil */}
         <div className="card-cream flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6 p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 text-center sm:text-left">
             <div className="relative">
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-white border-3 border-green-300 p-2 shadow-card flex items-center justify-center">
-                <BibooMascot mood="happy" size="md" character={character} animated={true} />
+                <BibooMascot mood="happy" size="md" character={profile?.character ?? "original"} animated={true} />
               </div>
               <button
                 type="button"
@@ -96,117 +79,113 @@ export default function ProfilPage() {
             </div>
 
             <div className="space-y-1">
-              <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-ink-900">{studentName}</h2>
+              <div className="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
+                <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-ink-900">
+                  {profile?.name ?? "Memuat..."}
+                </h2>
                 <span className="px-2 py-0.5 rounded-full bg-green-500 text-white text-[9px] sm:text-[10px] font-heading font-extrabold">
-                  {character === "girl" ? "Situnas Girl" : "Situnas Ori"}
+                  {profile?.character === "girl" ? "Situnas Girl" : "Situnas Ori"}
                 </span>
               </div>
-              <p className="text-xs text-ink-600 font-bold">{className} (NIS: 2026-001)</p>
-              <div className="flex items-center gap-2 pt-0.5 justify-center sm:justify-start">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-pill bg-white border border-green-300 text-[11px] sm:text-xs font-bold text-green-700">
-                  🌱 {statusMessage}
-                </span>
-              </div>
+              <p className="text-xs text-ink-600 font-bold">{profile?.className ?? ""}</p>
             </div>
           </div>
 
-          <div className="flex gap-2.5 sm:gap-3">
-            <div className="p-2.5 sm:p-3.5 rounded-2xl bg-white border-2 border-yellow-300 shadow-xs text-center min-w-[76px] sm:min-w-[90px]">
-              <Star className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 fill-yellow-400 mx-auto mb-0.5 sm:mb-1" />
-              <p className="font-heading font-extrabold text-lg sm:text-xl text-ink-900 leading-tight">{stars}</p>
-              <p className="text-[9px] sm:text-[10px] font-bold text-ink-600">Bintang</p>
-            </div>
-            <div className="p-2.5 sm:p-3.5 rounded-2xl bg-white border-2 border-yellow-300 shadow-xs text-center min-w-[76px] sm:min-w-[90px]">
-              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 fill-yellow-400 mx-auto mb-0.5 sm:mb-1" />
-              <p className="font-heading font-extrabold text-lg sm:text-xl text-ink-900 leading-tight">1</p>
-              <p className="text-[9px] sm:text-[10px] font-bold text-ink-600">Piala IoT</p>
-            </div>
+          <div className="p-2.5 sm:p-3.5 rounded-2xl bg-white border-2 border-yellow-300 shadow-xs text-center min-w-[90px]">
+            <Star className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 fill-yellow-400 mx-auto mb-0.5 sm:mb-1" />
+            <p className="font-heading font-extrabold text-lg sm:text-xl text-ink-900 leading-tight tabular-nums">
+              {profile?.stars ?? 0}
+            </p>
+            <p className="text-[9px] sm:text-[10px] font-bold text-ink-600">Bintang</p>
           </div>
         </div>
 
-        {/* 3 Clickable Stats Row */}
+        {/* Tiga angka, semuanya dari data sungguhan */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4">
-          <Link
-            href="/materi"
-            className="card text-center p-2.5 sm:p-4 hover:border-green-400 transition-all block group"
-          >
-            <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-            <p className="font-heading font-extrabold text-lg sm:text-2xl text-ink-900 tabular-nums">0 / {mockModules.length}</p>
-            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-0.5 truncate group-hover:text-green-600">Modul Selesai →</p>
-          </Link>
-
-          <Link
-            href="/misi"
-            className="card text-center p-2.5 sm:p-4 hover:border-green-400 transition-all block group"
-          >
+          <Link href="/misi" className="card text-center p-2.5 sm:p-4 hover:border-green-400 transition-all block group">
             <ClipboardCheck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-            <p className="font-heading font-extrabold text-lg sm:text-2xl text-ink-900 tabular-nums">{mockSubmissions.length}</p>
-            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-0.5 truncate group-hover:text-blue-500">Misi Terkirim →</p>
+            <p className="font-heading font-extrabold text-lg sm:text-2xl text-ink-900 tabular-nums">{selesai} / 4</p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-0.5 truncate group-hover:text-blue-500">
+              Kartu Misi →
+            </p>
           </Link>
 
-          <Link
-            href="/kuis"
-            className="card text-center p-2.5 sm:p-4 hover:border-green-400 transition-all block group"
-          >
+          <Link href="/kuis" className="card text-center p-2.5 sm:p-4 hover:border-green-400 transition-all block group">
             <Award className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-            <p className="font-heading font-extrabold text-lg sm:text-2xl text-ink-900 tabular-nums">80%</p>
-            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-0.5 truncate group-hover:text-yellow-600">Rata-Rata Kuis →</p>
+            <p className="font-heading font-extrabold text-lg sm:text-2xl text-ink-900 tabular-nums">
+              {status?.kuis ? status.kuis.terbaik : "–"}
+            </p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-0.5 truncate group-hover:text-yellow-600">
+              Nilai Kuis Terbaik →
+            </p>
           </Link>
+
+          <div className="card text-center p-2.5 sm:p-4">
+            <Users className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 mx-auto mb-1" />
+            <p className="font-heading font-extrabold text-sm sm:text-lg text-ink-900 leading-tight mt-1">
+              {status?.kelompok?.nama ?? "Belum ada"}
+            </p>
+            <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-0.5 truncate">Kelompok</p>
+          </div>
         </div>
 
-        {/* Umpan Balik Guru & Pesan Balasan */}
-        <div className="card space-y-4">
+        {/* Umpan balik guru sungguhan */}
+        <div className="card space-y-3">
           <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-1">
             BIMBINGAN & UMPAN BALIK GURU
           </div>
 
-          <div className="p-4 rounded-2xl bg-blue-50 border-2 border-blue-200 flex gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-500 text-white flex items-center justify-center font-heading font-extrabold text-base flex-shrink-0">
-              E
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-heading font-extrabold text-xs text-blue-900">Pak Eko Mulyadi (Guru Pembimbing)</span>
-                <span className="text-[10px] text-ink-600 font-bold">16 Okt 2026</span>
-              </div>
-              <p className="text-xs md:text-sm text-ink-900 leading-relaxed">
-                "Pengamatan visual kangkungmu pada Misi #1 sangat cermat, Andi! Nilai kelembapan media 45% cocok dengan fase pertumbuhannya. Pertahankan konsistensi pencatatan waktu pembacaan ya!"
-              </p>
-            </div>
-          </div>
-
-          {/* Form Balasan Siswa */}
-          <form onSubmit={handleSendFeedback} className="pt-1 space-y-2">
-            <label htmlFor="student-reply" className="font-heading font-bold text-xs text-ink-900 block">
-              Kirim Pertanyaan / Refleksi Balasan ke Pak Eko:
-            </label>
-            <div className="flex gap-2">
-              <input
-                id="student-reply"
-                type="text"
-                value={studentNote}
-                onChange={(e) => setStudentNote(e.target.value)}
-                placeholder="Tulis pesan atau pertanyaan lanjutan..."
-                className="input-field text-xs flex-1 h-11"
-              />
-              <button
-                type="submit"
-                className="btn-primary text-xs px-5 h-11 gap-1.5 flex-shrink-0 inline-flex items-center cursor-pointer"
-              >
-                <Send className="w-4 h-4" />
-                Kirim
+          {gagal && (
+            <div className="p-4 rounded-2xl bg-cream-50 border-2 border-yellow-300 text-center space-y-2">
+              <p className="text-xs font-bold text-brown-600">Belum bisa memuat bimbingan gurumu.</p>
+              <button type="button" onClick={muat} className="btn-ghost text-xs cursor-pointer">
+                Coba Lagi
               </button>
             </div>
-          </form>
-        </div>
+          )}
 
-        {/* Riwayat Aktivitas Belajar */}
-        <div className="card space-y-3">
-          <div className="panel-header -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-1">
-            LOG AKTIVITAS BELAJAR SISWA
-          </div>
-          <ActivityList activities={mockActivities} />
+          {!gagal && umpanBalik.length === 0 && (
+            <div className="p-5 rounded-2xl bg-green-50 border-2 border-green-200 text-center space-y-1.5">
+              <MessageSquare className="w-7 h-7 text-green-600 mx-auto" />
+              <p className="text-xs sm:text-sm font-bold text-ink-900">Belum ada bimbingan dari guru.</p>
+              <p className="text-[11px] sm:text-xs text-ink-600 leading-relaxed">
+                Selesaikan Kartu Misi bersama kelompokmu. Setelah gurumu menilai laporannya,
+                catatan beliau akan muncul di sini.
+              </p>
+            </div>
+          )}
+
+          {umpanBalik.map((item) => {
+            const kartu = getInvestigationCard(item.pot);
+            const guru = item.dinilaiOleh ?? "Guru Pembimbing";
+            return (
+              <div key={item.pot} className="p-4 rounded-2xl bg-blue-50 border-2 border-blue-200 flex gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-500 text-white flex items-center justify-center font-heading font-extrabold text-base flex-shrink-0">
+                  {guru.charAt(0).toUpperCase()}
+                </div>
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="font-heading font-extrabold text-xs text-blue-900">
+                      {guru} (Guru Pembimbing)
+                    </span>
+                    {item.dinilaiAt && (
+                      <span className="text-[10px] text-ink-600 font-bold">{tanggal(item.dinilaiAt)}</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] font-bold text-ink-600">
+                    Pot {item.pot}
+                    {kartu ? ` · ${kartu.title}` : ""}
+                    {item.nilai !== null && item.nilai !== undefined ? ` · Nilai ${item.nilai}` : ""}
+                  </p>
+                  {item.umpanBalik ? (
+                    <p className="text-xs md:text-sm text-ink-900 leading-relaxed">&ldquo;{item.umpanBalik}&rdquo;</p>
+                  ) : (
+                    <p className="text-xs text-ink-600 italic">Guru memberi nilai tanpa catatan tambahan.</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </ContentWrapper>
     </AppShell>

@@ -10,3 +10,13 @@ alter table public.misi_kelompok
 grant update (nilai, umpan_balik, dinilai_at) on public.misi_kelompok to service_role;
 
 notify pgrst, 'reload schema';
+
+-- Siapa guru yang menilai, agar siswa melihat nama guru sungguhan pada umpan
+-- balik di halaman Profil, bukan nama contoh.
+alter table public.misi_kelompok
+  add column if not exists dinilai_oleh uuid references public.guru (id);
+
+grant update (nilai, umpan_balik, dinilai_at, dinilai_oleh) on public.misi_kelompok to service_role;
+grant select on public.guru to service_role;
+
+notify pgrst, 'reload schema';

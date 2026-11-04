@@ -16,7 +16,18 @@ interface MisiRow {
   laporan: CardReport;
   nilai: number | null;
   umpan_balik: string | null;
+  dinilai_at: string | null;
+  dinilai_oleh: string | null;
   siswa: { nama: string } | null;
+}
+
+/** Ringkasan Kuis Pintar untuk halaman Profil. Null bila belum pernah mengerjakan. */
+async function ringkasanKuis(supabase: ReturnType<typeof getSupabaseAdmin>, siswaId: string) {
+  const { data, error } = await supabase.from("hasil_kuis").select("skor").eq("siswa_id", siswaId);
+  if (error) throw error;
+  if (!data?.length) return null;
+  const skor = data.map((row) => row.skor as number);
+  return { terbaik: Math.max(...skor), percobaan: skor.length };
 }
 
 export async function GET(request: Request) {
@@ -37,19 +48,31 @@ export async function GET(request: Request) {
     if (!siswa) {
       return NextResponse.json({ success: false, error: "Siswa tidak ditemukan" }, { status: 404 });
     }
+    const kuis = await ringkasanKuis(supabase, siswaId);
+
     if (!siswa.kelompok) {
-      return NextResponse.json({ success: true, kelompok: null, anggota: [], selesai: [], laporan: {}, bintang: siswa.bintang });
+      return NextResponse.json({ success: true, kelompok: null, anggota: [], selesai: [], laporan: {}, bintang: siswa.bintang, kuis });
     }
 
     const [{ data: rows, error: rowsError }, { data: anggota, error: anggotaError }] = await Promise.all([
       supabase
         .from("misi_kelompok")
-        .select("pot, laporan, nilai, umpan_balik, siswa(nama)")
+        .select("pot, laporan, nilai, umpan_balik, dinilai_at, dinilai_oleh, siswa(nama)")
         .eq("kelompok_id", siswa.kelompok.id)
         .overrideTypes<MisiRow[], { merge: false }>(),
       supabase.from("siswa").select("nama").eq("kelompok_id", siswa.kelompok.id).order("nama"),
     ]);
     if (rowsError || anggotaError) throw rowsError ?? anggotaError;
+
+    // Nama guru penilai diambil terpisah, bukan lewat join, supaya siswa melihat
+    // nama guru sungguhan tanpa ikut menarik kolom lain dari tabel guru.
+    const idPenilai = [...new Set((rows ?? []).map((r) => r.dinilai_oleh).filter((id): id is string => !!id))];
+    const namaGuru = new Map<string, string>();
+    if (idPenilai.length > 0) {
+      const { data: guru, error: guruError } = await supabase.from("guru").select("id, nama").in("id", idPenilai);
+      if (guruError) throw guruError;
+      for (const g of guru ?? []) namaGuru.set(g.id, g.nama);
+    }
 
     return NextResponse.json({
       success: true,
@@ -59,10 +82,18 @@ export async function GET(request: Request) {
       laporan: Object.fromEntries(
         (rows ?? []).map((row) => [
           row.pot,
-          { ...row.laporan, pengirim: row.siswa?.nama, nilai: row.nilai, umpanBalik: row.umpan_balik },
+          {
+            ...row.laporan,
+            pengirim: row.siswa?.nama,
+            nilai: row.nilai,
+            umpanBalik: row.umpan_balik,
+            dinilaiOleh: row.dinilai_oleh ? namaGuru.get(row.dinilai_oleh) ?? null : null,
+            dinilaiAt: row.dinilai_at,
+          },
         ])
       ),
       bintang: siswa.bintang,
+      kuis,
     });
   } catch (err) {
     console.error("GET /api/siswa/misi-harian", err);

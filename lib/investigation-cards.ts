@@ -29,6 +29,9 @@ export interface CardReport {
   /** Penilaian guru; ditambahkan server saat laporan dibaca. */
   nilai?: number | null;
   umpanBalik?: string | null;
+  /** Nama guru yang menilai dan waktunya; ditambahkan server saat laporan dibaca. */
+  dinilaiOleh?: string | null;
+  dinilaiAt?: string | null;
 }
 
 const MIN_ANSWER_LENGTH = 15;

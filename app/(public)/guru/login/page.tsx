@@ -1,18 +1,27 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/agro/brand-logo";
 import { Eye, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
 import { showSuccessAlert, showWarningAlert } from "@/lib/swal";
-import { saveGuruProfile } from "@/lib/guru-client";
+import { getRememberedGuruEmail, rememberGuruEmail, saveGuruProfile } from "@/lib/guru-client";
 import Link from "next/link";
 
 export default function GuruLoginPage() {
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [ingatSaya, setIngatSaya] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const tersimpan = getRememberedGuruEmail();
+    if (tersimpan) {
+      setForm((f) => ({ ...f, email: tersimpan }));
+      setIngatSaya(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +40,7 @@ export default function GuruLoginPage() {
       const res = await fetch("/api/guru/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ingatSaya }),
       });
       if (res.status === 401) {
         setError("Email atau kata sandi salah.");
@@ -42,6 +51,7 @@ export default function GuruLoginPage() {
 
       const { nama, email } = await res.json();
       saveGuruProfile({ nama, email: email || form.email });
+      rememberGuruEmail(ingatSaya ? email || form.email : null);
       await showSuccessAlert("Login Guru Berhasil! 🎓", `Selamat datang kembali, ${nama}.`, 1300);
       router.push("/guru/dashboard");
     } catch {
@@ -107,6 +117,23 @@ export default function GuruLoginPage() {
                   {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="ingat-saya" className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  id="ingat-saya"
+                  type="checkbox"
+                  checked={ingatSaya}
+                  onChange={(e) => setIngatSaya(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-2 border-blue-300 accent-blue-500 cursor-pointer"
+                />
+                <span className="text-xs font-heading font-bold text-ink-900">Ingat saya di perangkat ini</span>
+              </label>
+              <p className="text-[11px] text-ink-600 leading-relaxed pl-6.5">
+                Anda tetap masuk selama 30 hari tanpa mengetik apa pun. Kata sandi tidak disimpan
+                di perangkat. Jangan dicentang bila memakai komputer bersama.
+              </p>
             </div>
 
             {error && <p className="text-xs text-red-500 font-bold">{error}</p>}

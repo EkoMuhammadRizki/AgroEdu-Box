@@ -7,13 +7,15 @@ export interface MissionStatus {
   anggota: string[];
   selesai: DailyPot[];
   laporan: Partial<Record<DailyPot, CardReport>>;
+  /** Null bila siswa belum pernah mengerjakan Kuis Pintar. */
+  kuis: { terbaik: number; percobaan: number } | null;
 }
 
 /** Sekaligus menyegarkan bintang lokal, karena teman sekelompok bisa menambahnya kapan saja. */
 export async function fetchMissionStatus(profile: StudentProfile): Promise<MissionStatus> {
   const res = await fetch(`/api/siswa/misi-harian?siswaId=${profile.id}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const { kelompok, anggota, selesai, laporan, bintang } = await res.json();
+  const { kelompok, anggota, selesai, laporan, bintang, kuis } = await res.json();
   if (bintang !== profile.stars) saveStudentProfile({ ...profile, stars: bintang });
-  return { kelompok, anggota, selesai, laporan };
+  return { kelompok, anggota, selesai, laporan, kuis: kuis ?? null };
 }

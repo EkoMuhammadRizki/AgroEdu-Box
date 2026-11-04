@@ -2,6 +2,8 @@ import { SignJWT, jwtVerify } from "jose";
 
 export const GURU_COOKIE = "agro_guru_session";
 export const GURU_SESSION_SECONDS = 60 * 60 * 24;
+/** Dipakai bila guru mencentang "Ingat saya" di perangkat miliknya sendiri. */
+export const GURU_REMEMBER_SECONDS = 60 * 60 * 24 * 30;
 
 function getKey() {
   const secret = process.env.GURU_SESSION_SECRET;
@@ -11,12 +13,12 @@ function getKey() {
   return new TextEncoder().encode(secret);
 }
 
-export function createGuruSession(guruId: string) {
+export function createGuruSession(guruId: string, seconds = GURU_SESSION_SECONDS) {
   return new SignJWT()
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(guruId)
     .setIssuedAt()
-    .setExpirationTime(`${GURU_SESSION_SECONDS}s`)
+    .setExpirationTime(`${seconds}s`)
     .sign(getKey());
 }
 
