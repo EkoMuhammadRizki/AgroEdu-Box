@@ -1,18 +1,20 @@
+"use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
 import { GuruStatCard } from "@/components/agro/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { ActivityList } from "@/components/agro/activity-list";
-import {
-  mockGuruStats, mockDevices, mockClasses, mockActivities, mockSubmissions,
-} from "@/lib/mock-data";
-import { Users, BookOpen, ClipboardCheck, AlertCircle, Leaf, Cpu, ArrowRight } from "lucide-react";
+import { GuruDataState } from "@/components/agro/guru-data-state";
+import { mockDevices } from "@/lib/mock-data";
+import { ringkasanKelas } from "@/lib/guru-data";
+import { useGuruData } from "@/lib/use-guru-data";
+import { AlertTriangle, ArrowRight, BookOpen, ClipboardCheck, Cpu, Users } from "lucide-react";
 import { formatTimestamp } from "@/lib/iot";
 import Link from "next/link";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = { title: "Dashboard Guru" };
 
 export default function GuruDashboardPage() {
+  const { data, failed, reload } = useGuruData();
+  const kelasInfo = data?.kelas.map((kelas) => ({ kelas, info: ringkasanKelas(data, kelas.id) })) ?? [];
+  const total = (key: "jumlahKelompok" | "belumBerkelompok") => kelasInfo.reduce((sum, item) => sum + item.info[key], 0);
+
   return (
     <AppShell role="guru">
       <PageHeader
@@ -21,53 +23,65 @@ export default function GuruDashboardPage() {
       />
 
       <ContentWrapper className="space-y-6 pb-8">
-        {/* ── Indikator Utama (Clickable) ─────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <Link href="/guru/kelas" className="block group transition-transform active:scale-[0.98]">
-            <GuruStatCard label="Total Siswa" value={mockGuruStats.totalSiswa} icon={<Users className="h-4 w-4" strokeWidth={1.75} />} />
-          </Link>
-          <Link href="/guru/kelas" className="block group transition-transform active:scale-[0.98]">
-            <GuruStatCard label="Kelas Aktif" value={mockGuruStats.totalKelas} icon={<BookOpen className="h-4 w-4" strokeWidth={1.75} />} />
-          </Link>
-          <Link href="/guru/tugas" className="block group transition-transform active:scale-[0.98]">
-            <GuruStatCard label="Misi Aktif" value={mockGuruStats.totalMisi} icon={<ClipboardCheck className="h-4 w-4" strokeWidth={1.75} />} />
-          </Link>
-          <Link href="/guru/tugas" className="block group transition-transform active:scale-[0.98]">
-            <GuruStatCard label="Perlu Dinilai" value={mockGuruStats.perluDinilai} highlight icon={<AlertCircle className="h-4 w-4" strokeWidth={1.75} />} />
-          </Link>
-        </div>
+        {!data && <GuruDataState failed={failed} reload={reload} />}
 
-        {/* ── Kelas + IoT ─────────────────────────────────────────── */}
+        {data && (
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <Link href="/guru/kelas" className="block group transition-transform active:scale-[0.98]">
+                <GuruStatCard label="Total Siswa" value={data.siswa.length} icon={<Users className="h-4 w-4" strokeWidth={1.75} />} />
+              </Link>
+              <Link href="/guru/kelas" className="block group transition-transform active:scale-[0.98]">
+                <GuruStatCard label="Kelas" value={data.kelas.length} icon={<BookOpen className="h-4 w-4" strokeWidth={1.75} />} />
+              </Link>
+              <Link href="/guru/kelas" className="block group transition-transform active:scale-[0.98]">
+                <GuruStatCard label="Kelompok Aktif" value={total("jumlahKelompok")} icon={<Users className="h-4 w-4" strokeWidth={1.75} />} />
+              </Link>
+              <Link href="/guru/tugas" className="block group transition-transform active:scale-[0.98]">
+                <GuruStatCard label="Perlu Dinilai" value={data.laporan.filter((l) => l.nilai === null).length} highlight icon={<ClipboardCheck className="h-4 w-4" strokeWidth={1.75} />} />
+              </Link>
+            </div>
+
+            {total("belumBerkelompok") > 0 && (
+              <div className="card border-amber-200 bg-amber-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-amber-800 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  {total("belumBerkelompok")} siswa belum punya kelompok, jadi belum bisa mengerjakan Kartu Misi.
+                </p>
+                <Link href="/guru/kelas" className="btn-primary text-xs gap-1.5 inline-flex items-center justify-center flex-shrink-0">
+                  Bentuk Kelompok
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            )}
+          </>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Kelas */}
           <div className="card">
             <div className="panel-header -mx-4 -mt-4 md:-mx-5 md:-mt-5 mb-4 rounded-t-card flex items-center justify-between">
-              <span>KELAS AKTIF</span>
+              <span>KELAS</span>
               <Link href="/guru/kelas" className="text-[10px] font-normal normal-case hover:underline">
                 Kelola Semua →
               </Link>
             </div>
             <div className="space-y-2">
-              {mockClasses.map((cls) => (
+              {kelasInfo.map(({ kelas, info }) => (
                 <Link
-                  key={cls.id}
-                  href={`/guru/kelas/${cls.id}`}
-                  className="flex items-center justify-between p-3 rounded-xl bg-surface-muted hover:bg-guru-100/50 transition-colors duration-150 group cursor-pointer"
+                  key={kelas.id}
+                  href={`/guru/kelas/${kelas.id}`}
+                  className="flex items-center justify-between p-3 rounded-xl bg-surface-muted hover:bg-guru-100/50 transition-colors duration-150 group"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-ink group-hover:text-guru-700 transition-colors">{cls.name}</p>
-                    <p className="text-xs text-ink-muted mt-0.5">Kode: {cls.code} · {cls.studentCount} siswa</p>
+                    <p className="text-sm font-semibold text-ink group-hover:text-guru-700 transition-colors">{kelas.nama}</p>
+                    <p className="text-xs text-ink-muted mt-0.5">
+                      {info.jumlahSiswa} siswa · {info.jumlahKelompok} kelompok · {info.laporanMasuk} laporan
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <StatusBadge status="terbit" showDot={false} />
-                    <ArrowRight className="h-3.5 w-3.5 text-ink-muted group-hover:text-guru-700 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
+                  <ArrowRight className="h-3.5 w-3.5 text-ink-muted" />
                 </Link>
               ))}
             </div>
-            <Link href="/guru/kelas" className="block mt-3 text-xs text-center text-guru-600 font-semibold hover:underline">
-              Buka menu kelola kelas →
-            </Link>
           </div>
 
           {/* Status IoT (Clickable to /guru/iot) */}
@@ -111,51 +125,37 @@ export default function GuruDashboardPage() {
           </div>
         </div>
 
-        {/* ── Perlu Dinilai ───────────────────────────────────────── */}
         <div className="card">
           <div className="panel-header -mx-4 -mt-4 md:-mx-5 md:-mt-5 mb-4 rounded-t-card flex items-center justify-between">
-            <span>PERLU DINILAI SEGERA</span>
+            <span>LAPORAN KARTU MISI TERBARU</span>
             <Link href="/guru/tugas" className="text-[10px] font-normal normal-case hover:underline">
-              Semua Tugas →
+              Semua Laporan →
             </Link>
           </div>
-          {mockSubmissions.length > 0 ? (
-            <div className="space-y-2">
-              {mockSubmissions.map((sub) => (
-                <Link
-                  key={sub.id}
-                  href={`/guru/tugas/${sub.missionId}/penilaian`}
-                  className="flex items-center justify-between p-3.5 rounded-xl bg-[#FFF4D6] border border-[#E5C566] hover:border-guru-600 hover:shadow-xs transition-all duration-150 group cursor-pointer"
-                >
-                  <div>
-                    <p className="text-sm font-bold text-ink group-hover:text-guru-700 transition-colors">
-                      Laporan Misi: Detektif Tanaman Sehat
-                    </p>
-                    <p className="text-xs text-ink-muted mt-0.5">
-                      Siswa: Andi Pratama (Kelas 10A) · Dikumpulkan: {sub.submittedAt ? formatTimestamp(sub.submittedAt) : "-"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <StatusBadge status={sub.status} />
-                    <span className="btn-primary text-xs py-1.5 px-3 rounded-lg gap-1 inline-flex items-center">
-                      Buka Rubrik
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-ink-muted text-center py-4">Semua misi siswa telah dinilai.</p>
+          {data && data.laporan.length === 0 && (
+            <p className="text-xs text-ink-muted text-center py-4">Belum ada laporan dari siswa.</p>
           )}
-        </div>
-
-        {/* ── Aktivitas Terbaru ───────────────────────────────────── */}
-        <div className="card">
-          <div className="panel-header -mx-4 -mt-4 md:-mx-5 md:-mt-5 mb-4 rounded-t-card">
-            AKTIVITAS TERBARU KELAS
+          <div className="space-y-2">
+            {data?.laporan.slice(0, 5).map((item) => {
+              const kelompok = data.kelompok.find((k) => k.id === item.kelompokId);
+              const kelas = data.kelas.find((k) => k.id === kelompok?.kelasId);
+              return (
+                <Link
+                  key={`${item.kelompokId}-${item.pot}`}
+                  href="/guru/tugas"
+                  className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-muted hover:bg-guru-100/50 transition-colors duration-150"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink truncate">{kelompok?.nama} {kelas?.nama}: Pot {item.pot}</p>
+                    <p className="text-xs text-ink-muted mt-0.5 truncate">
+                      Dikirim {item.pengirim ?? "-"} · {formatTimestamp(item.selesaiAt)} · {item.nilai === null ? "Perlu dinilai" : `Nilai ${item.nilai}`}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-3.5 w-3.5 text-ink-muted flex-shrink-0" />
+                </Link>
+              );
+            })}
           </div>
-          <ActivityList activities={mockActivities} />
         </div>
       </ContentWrapper>
     </AppShell>
