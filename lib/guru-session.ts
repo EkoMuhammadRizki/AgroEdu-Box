@@ -1,0 +1,31 @@
+import { SignJWT, jwtVerify } from "jose";
+
+export const GURU_COOKIE = "agro_guru_session";
+export const GURU_SESSION_SECONDS = 60 * 60 * 24;
+
+function getKey() {
+  const secret = process.env.GURU_SESSION_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new Error("GURU_SESSION_SECRET belum diisi (minimal 32 karakter)");
+  }
+  return new TextEncoder().encode(secret);
+}
+
+export function createGuruSession(guruId: string) {
+  return new SignJWT()
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(guruId)
+    .setIssuedAt()
+    .setExpirationTime(`${GURU_SESSION_SECONDS}s`)
+    .sign(getKey());
+}
+
+export async function isValidGuruSession(token: string | undefined) {
+  if (!token) return false;
+  try {
+    await jwtVerify(token, getKey(), { algorithms: ["HS256"] });
+    return true;
+  } catch {
+    return false;
+  }
+}

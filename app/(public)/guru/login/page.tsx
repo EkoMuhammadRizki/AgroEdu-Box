@@ -4,11 +4,12 @@ import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/agro/brand-logo";
 import { Eye, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
 import { showSuccessAlert, showWarningAlert } from "@/lib/swal";
+import { saveGuruName } from "@/lib/guru-client";
 import Link from "next/link";
 
 export default function GuruLoginPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ email: "eko.mulyadi@sekolah.sch.id", password: "password123" });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,9 +27,27 @@ export default function GuruLoginPage() {
       return;
     }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    await showSuccessAlert("Login Guru Berhasil! 🎓", "Selamat datang kembali di Portal AGRO EDU TRACK.", 1300);
-    router.push("/guru/dashboard");
+    try {
+      const res = await fetch("/api/guru/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (res.status === 401) {
+        setError("Email atau kata sandi salah.");
+        setLoading(false);
+        return;
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const { nama } = await res.json();
+      saveGuruName(nama);
+      await showSuccessAlert("Login Guru Berhasil! 🎓", `Selamat datang kembali, ${nama}.`, 1300);
+      router.push("/guru/dashboard");
+    } catch {
+      setError("Belum bisa masuk. Periksa koneksi lalu coba lagi.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,7 +79,7 @@ export default function GuruLoginPage() {
                 type="email"
                 autoComplete="email"
                 className="input-field"
-                placeholder="nama.guru@sekolah.sch.id"
+                placeholder="nama.guru@gmail.com"
                 value={form.email}
                 onChange={(e) => { setForm((f) => ({ ...f, email: e.target.value })); setError(""); }}
               />

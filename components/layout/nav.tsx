@@ -7,7 +7,8 @@ import {
   LogOut, Star
 } from "lucide-react";
 import { showConfirmDialog, showSuccessAlert } from "@/lib/swal";
-import { logoutStudent } from "@/lib/student-session";
+import { PROFILE_UPDATED_EVENT, getStudentProfile, logoutStudent } from "@/lib/student-session";
+import { getGuruName, logoutGuru } from "@/lib/guru-client";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
 import { BrandIcon } from "@/components/agro/brand-logo";
 import { useEffect, useState } from "react";
@@ -55,7 +56,10 @@ export function Sidebar({ role }: SidebarProps) {
     stars: 120,
   });
 
+  const [guruName, setGuruName] = useState("");
+
   useEffect(() => {
+    if (role === "guru") setGuruName(getGuruName());
     if (role === "siswa") {
       try {
         const stored = localStorage.getItem("agro_student_profile");
@@ -70,6 +74,16 @@ export function Sidebar({ role }: SidebarProps) {
         // ignore
       }
     }
+  }, [role]);
+
+  useEffect(() => {
+    if (role !== "siswa") return;
+    const syncProfile = () => {
+      const updated = getStudentProfile();
+      if (updated) setStudentProfile((prev) => ({ ...prev, ...updated }));
+    };
+    window.addEventListener(PROFILE_UPDATED_EVENT, syncProfile);
+    return () => window.removeEventListener(PROFILE_UPDATED_EVENT, syncProfile);
   }, [role]);
 
   const navItems = role === "siswa" ? SISWA_NAV : GURU_NAV;
@@ -88,7 +102,7 @@ export function Sidebar({ role }: SidebarProps) {
     });
 
     if (result.isConfirmed) {
-      if (role === "siswa") await logoutStudent();
+      await (role === "siswa" ? logoutStudent() : logoutGuru());
       await showSuccessAlert(
         "Sampai Jumpa!",
         role === "siswa"
@@ -170,12 +184,12 @@ export function Sidebar({ role }: SidebarProps) {
             {role === "siswa" ? (
               <BibooMascot mood="happy" size="sm" character={studentProfile.character} animated={false} />
             ) : (
-              "E"
+              (guruName[0] ?? "G").toUpperCase()
             )}
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-heading font-extrabold text-xs text-ink-900 truncate">
-              {role === "siswa" ? studentProfile.name : "Pak Eko Mulyadi"}
+              {role === "siswa" ? studentProfile.name : guruName || "Guru"}
             </p>
             <p className="text-[10px] text-ink-600 truncate font-semibold">
               {role === "siswa" ? studentProfile.classCode : "Guru Pembimbing"}

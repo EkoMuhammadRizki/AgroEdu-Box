@@ -7,21 +7,37 @@ import {
 } from "@/lib/mock-data";
 import {
   Thermometer, Droplets, Sprout, Sun, ArrowRight,
-  Trophy, CheckCircle2, Clock, Sparkles, BookOpen, Check
+  Trophy, CheckCircle2, Clock, Sparkles, BookOpen, Check, Lock
 } from "lucide-react";
 import { formatTimestamp } from "@/lib/iot";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { showToast } from "@/lib/swal";
+import { getStudentProfile, saveStudentProfile } from "@/lib/student-session";
+import { DAILY_POTS, STARS_PER_POT, type DailyPot } from "@/lib/daily-missions";
 
 export default function BerandaSiswaPage() {
   const [studentName, setStudentName] = useState("Andi");
   const [character, setCharacter] = useState<"original" | "girl">("original");
   const [device, setDevice] = useState(mockDevices[0]);
-  const [completedDaily, setCompletedDaily] = useState<Record<string, boolean>>({
-    "misi-daily-1": true,
-    "misi-daily-2": false,
-  });
+  const [completedPots, setCompletedPots] = useState<DailyPot[]>([]);
+  const [missionsStatus, setMissionsStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [savingPot, setSavingPot] = useState<DailyPot | null>(null);
+
+  const loadDailyMissions = async () => {
+    const profile = getStudentProfile();
+    if (!profile) return;
+    setMissionsStatus("loading");
+    try {
+      const res = await fetch(`/api/siswa/misi-harian?siswaId=${profile.id}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const { selesai } = await res.json();
+      setCompletedPots(selesai);
+      setMissionsStatus("ready");
+    } catch {
+      setMissionsStatus("error");
+    }
+  };
 
   useEffect(() => {
     try {
@@ -34,6 +50,8 @@ export default function BerandaSiswaPage() {
     } catch {
       // ignore
     }
+
+    loadDailyMissions();
 
     const fetchLiveData = async () => {
       try {
@@ -56,14 +74,31 @@ export default function BerandaSiswaPage() {
 
   const isOffline = device.status === "offline";
 
-  const toggleDailyMission = (id: string, title: string) => {
-    setCompletedDaily((prev) => {
-      const nextState = !prev[id];
-      if (nextState) {
-        showToast(`Hebat! "${title}" selesai, +10 Bintang! ⭐`, "success", 1600);
+  const completePot = async (pot: DailyPot) => {
+    const profile = getStudentProfile();
+    if (!profile || savingPot) return;
+    setSavingPot(pot);
+    try {
+      const res = await fetch("/api/siswa/misi-harian", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siswaId: profile.id, pot }),
+      });
+      if (res.status === 409) {
+        await loadDailyMissions();
+        return;
       }
-      return { ...prev, [id]: nextState };
-    });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const { bintang } = await res.json();
+      saveStudentProfile({ ...profile, stars: bintang });
+      setCompletedPots((done) => [...done, pot]);
+      showToast(`Hebat! Pot Tanaman ${pot} selesai, +${STARS_PER_POT} Bintang! ⭐`, "success", 1600);
+    } catch {
+      showToast("Belum tersimpan. Periksa internetmu lalu coba lagi.", "info");
+    } finally {
+      setSavingPot(null);
+    }
   };
 
   return (
@@ -207,55 +242,86 @@ export default function BerandaSiswaPage() {
                   DAILY MISSIONS (MISI HARIAN)
                 </span>
                 <span className="text-[9px] sm:text-[10px] font-bold text-brown-600">
-                  {Object.values(completedDaily).filter(Boolean).length}/3 Selesai
+                  {completedPots.length}/{DAILY_POTS.length} Selesai
                 </span>
               </div>
 
               <p className="text-[11px] sm:text-xs text-ink-600 mb-2.5">
-                Lakukan langkah harian untuk menjaga tanamanmu tetap optimal:
+                {completedPots.length === DAILY_POTS.length
+                  ? "Semua pot sudah dirawat hari ini. Sampai besok ya! 🌱"
+                  : "Rawat pot secara berurutan, mulai dari Pot A sampai Pot D:"}
               </p>
 
+              {missionsStatus === "loading" && (
+                <p className="text-xs text-ink-600 text-center py-6">Memuat misi harian...</p>
+              )}
+
+              {missionsStatus === "error" && (
+                <div className="text-center space-y-2 py-4">
+                  <p className="text-xs text-ink-600">Misi harian belum bisa dimuat.</p>
+                  <button type="button" onClick={loadDailyMissions} className="btn-ghost text-xs px-4 py-1.5">
+                    Coba Lagi
+                  </button>
+                </div>
+              )}
+
+              {missionsStatus === "ready" && (
               <div className="space-y-2">
-                {[
-                  { id: "misi-daily-1", title: "Siram dan cek aliran nutrisi tunas", desc: "Pastikan kelembapan tanah >40%", pts: 10 },
-                  { id: "misi-daily-2", title: "Periksa paparan sinar matahari", desc: "Intensitas optimal: 2500 - 4500 lux", pts: 10 },
-                  { id: "misi-daily-3", title: "Kerjakan Misi Detektif Tanaman Sehat", desc: "Catat bukti pengamatan visual ke form", pts: 30, link: "/misi/misi-1" },
-                ].map((item) => {
-                  const isDone = completedDaily[item.id];
+                {DAILY_POTS.map((pot, index) => {
+                  const isDone = completedPots.includes(pot);
+                  const isNext = index === completedPots.length;
+                  const isSaving = savingPot === pot;
                   return (
-                    <div
-                      key={item.id}
-                      onClick={() => toggleDailyMission(item.id, item.title)}
-                      className={`p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
+                    <button
+                      key={pot}
+                      type="button"
+                      disabled={!isNext || savingPot !== null}
+                      onClick={() => completePot(pot)}
+                      className={`w-full text-left p-2.5 sm:p-3 rounded-2xl border-2 transition-all flex items-center justify-between gap-2.5 ${
                         isDone
                           ? "bg-green-100/60 border-green-300 text-green-800"
-                          : "bg-white border-green-200 hover:border-green-400"
+                          : isNext
+                            ? "bg-white border-green-400 hover:bg-green-50 cursor-pointer"
+                            : "bg-[#EAEFE6]/60 border-ink-300/30 opacity-70"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <button
-                          type="button"
+                        <span
                           className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                            isDone ? "bg-green-500 border-green-500 text-white" : "border-ink-300 bg-white"
+                            isDone
+                              ? "bg-green-500 border-green-500 text-white"
+                              : isNext
+                                ? "border-green-500 bg-white"
+                                : "border-ink-300 bg-white text-ink-600"
                           }`}
                         >
                           {isDone && <Check className="w-3 h-3 stroke-[3]" />}
-                        </button>
+                          {!isDone && !isNext && <Lock className="w-2.5 h-2.5" />}
+                        </span>
                         <div className="min-w-0">
                           <p className={`font-heading font-bold text-xs sm:text-sm truncate ${isDone ? "line-through text-ink-600" : "text-ink-900"}`}>
-                            {item.title}
+                            Pot Tanaman {pot}
                           </p>
-                          <p className="text-[10px] text-ink-600 truncate">{item.desc}</p>
+                          <p className="text-[10px] text-ink-600 truncate">
+                            {isDone
+                              ? "Selesai hari ini"
+                              : isSaving
+                                ? "Menyimpan..."
+                                : isNext
+                                  ? "Cek kondisi pot, lalu ketuk di sini"
+                                  : `Selesaikan Pot ${DAILY_POTS[index - 1]} dulu`}
+                          </p>
                         </div>
                       </div>
 
                       <span className="px-2 py-0.5 rounded-full bg-yellow-300/60 text-brown-600 font-heading font-extrabold text-[10px] flex-shrink-0">
-                        +{item.pts} ⭐
+                        +{STARS_PER_POT} ⭐
                       </span>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
+              )}
             </div>
 
             <div className="pt-3 sm:pt-4">

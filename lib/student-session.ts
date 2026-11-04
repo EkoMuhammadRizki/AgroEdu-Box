@@ -11,6 +11,7 @@ export interface StudentProfile {
 }
 
 const STORAGE_KEY = "agro_student_profile";
+export const PROFILE_UPDATED_EVENT = "agro-profile-updated";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function isUuid(value: unknown): value is string {
@@ -32,6 +33,7 @@ export function getStudentProfile(): StudentProfile | null {
 export function saveStudentProfile(profile: StudentProfile) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    window.dispatchEvent(new Event(PROFILE_UPDATED_EVENT));
   } catch {
     // ignore
   }

@@ -46,4 +46,4 @@ next-env.d.ts
 # data pribadi siswa (jangan pernah di-commit)
 *.xlsx
 ~$*
-/supabase/seed.sql
+/supabase/seed*.sql

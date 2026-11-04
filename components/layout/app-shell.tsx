@@ -5,7 +5,8 @@ import { BrandIcon } from "@/components/agro/brand-logo";
 import { Star, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { showConfirmDialog, showSuccessAlert } from "@/lib/swal";
-import { getStudentProfile, logoutStudent } from "@/lib/student-session";
+import { PROFILE_UPDATED_EVENT, getStudentProfile, logoutStudent } from "@/lib/student-session";
+import { logoutGuru } from "@/lib/guru-client";
 
 interface AppShellProps {
   role: "siswa" | "guru";
@@ -26,6 +27,13 @@ export function AppShell({ role, children }: AppShellProps) {
     }
     setStars(profile.stars);
     setAuthorized(true);
+
+    const syncStars = () => {
+      const updated = getStudentProfile();
+      if (updated) setStars(updated.stars);
+    };
+    window.addEventListener(PROFILE_UPDATED_EVENT, syncStars);
+    return () => window.removeEventListener(PROFILE_UPDATED_EVENT, syncStars);
   }, [role, router]);
 
   const handleMobileLogout = async () => {
@@ -42,7 +50,7 @@ export function AppShell({ role, children }: AppShellProps) {
     });
 
     if (result.isConfirmed) {
-      if (role === "siswa") await logoutStudent();
+      await (role === "siswa" ? logoutStudent() : logoutGuru());
       await showSuccessAlert(
         "Sampai Jumpa!",
         role === "siswa"
