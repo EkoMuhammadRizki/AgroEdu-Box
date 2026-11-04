@@ -146,23 +146,39 @@ Dashboard siswa dan guru menyegarkan data secara berkala tanpa memuat ulang hala
    ```
 
 3. **Konfigurasi Environment Variables**:
-   Salin `.env.example` menjadi `.env.local`:
+   Salin `.env.example` menjadi `.env.local`, lalu isi sesuai petunjuk di
+   dalamnya. Tanpa ini aplikasi tidak bisa jalan; tidak ada mode demo.
    ```bash
    cp .env.example .env.local
    ```
-   Isi konfigurasi Supabase (opsional jika menggunakan mode demo lokal):
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-   ```
 
-4. **Jalankan server pengembangan**:
+   Semua variabel hanya dipakai di server. **Jangan pernah memberi awalan
+   `NEXT_PUBLIC_`** pada variabel mana pun di sini: awalan itu membuat nilainya
+   ikut dikirim ke browser, sehingga kunci rahasia bisa dibaca siapa saja.
+
+4. **Siapkan database**: jalankan berkas berikut di Supabase → SQL Editor,
+   berurutan. Semuanya aman dijalankan ulang.
+
+   | Urutan | Berkas | Isi |
+   |---|---|---|
+   | 1 | `supabase/schema.sql` | tabel kelas & siswa |
+   | 2 | `supabase/seed.sql` | data siswa (tidak ada di repo: berisi data pribadi anak) |
+   | 3 | `supabase/guru.sql` | tabel guru |
+   | 4 | `supabase/seed-guru.sql` | akun guru (tidak ada di repo) |
+   | 5 | `supabase/kartu-misi.sql` | kelompok & Kartu Investigasi |
+   | 6 | `supabase/penilaian.sql` | nilai & umpan balik guru |
+   | 7 | `supabase/kuis.sql` | hasil Kuis Pintar |
+   | 8 | `supabase/iot.sql` | pembacaan alat IoT |
+
+   Berkas `seed*.sql` sengaja tidak ikut ke GitHub karena memuat NISN dan
+   No. Induk siswa.
+
+5. **Jalankan server pengembangan**:
    ```bash
    npm run dev
    ```
 
-5. Buka peramban di [http://localhost:3000](http://localhost:3000).
+6. Buka peramban di [http://localhost:3000](http://localhost:3000).
 
 ---
 
