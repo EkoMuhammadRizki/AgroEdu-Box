@@ -60,7 +60,7 @@ export default function BerandaSiswaPage() {
 
   return (
     <AppShell role="siswa">
-      {/* Friendly Hero Banner with BiBoo */}
+      {/* Friendly Hero Banner with Situnas */}
       <div className="relative px-3.5 pt-4 pb-2 sm:px-8 sm:pt-8 max-w-6xl mx-auto">
         <div className="relative overflow-hidden rounded-[24px] sm:rounded-[32px] bg-gradient-to-r from-[#BFE6F7] via-[#EAF6D9] to-[#CDEBB0] border-3 border-white p-4 sm:p-8 shadow-card flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
           <Butterfly className="absolute top-2 right-4 sm:top-4 sm:right-20 animate-bounce" />

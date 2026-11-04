@@ -115,7 +115,7 @@ export function Sidebar({ role }: SidebarProps) {
       await showSuccessAlert(
         "Sampai Jumpa!",
         role === "siswa"
-          ? "Tetap rawat tanamanmu ya! Sampai ketemu lagi bersama BiBoo!"
+          ? "Tetap rawat tanamanmu ya! Sampai ketemu lagi bersama Situnas!"
           : "Anda telah keluar dari sesi guru.",
         1300
       );

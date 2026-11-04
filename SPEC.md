@@ -1,7 +1,7 @@
 # SPEC.md — Penyesuaian Fitur Website AGRO EDU BOX
 
 > Dokumen ini ditujukan untuk **AI coding agent (Antigravity)**. Website AGRO EDU BOX **sudah ada** (Next.js). Tugasmu bukan membangun dari nol, melainkan **menyesuaikan** website yang ada: menambah, mengubah, dan (setelah konfirmasi) menghapus fitur sesuai spesifikasi ini.
-> Tampilan visual mengikuti **`DESIGN.md`** (tema BiBoo: hijau ceria, pil, rounded). Dokumen ini hanya mengatur **fitur, alur, data, dan perilaku**.
+> Tampilan visual mengikuti **`DESIGN.md`** (tema Situnas: hijau ceria, pil, rounded). Dokumen ini hanya mengatur **fitur, alur, data, dan perilaku**.
 
 ---
 
@@ -39,7 +39,7 @@ Legenda: `ADD` tambah · `MODIFY` ubah yang sudah ada · `KEEP` pertahankan · `
 
 | # | Fitur | Aksi | Catatan |
 |---|---|---|---|
-| S1 | Layar pembuka & sambutan BiBoo | KEEP | Sesuai `DESIGN.md` |
+| S1 | Layar pembuka & sambutan Situnas | KEEP | Sesuai `DESIGN.md` |
 | S2 | Input nama + pilih karakter (Original/Girl) | MODIFY | Tambah **pilih kelas / kode kelas** dan identitas stabil (lihat 4.1) |
 | S3 | Dashboard siswa | MODIFY | Fokus ke "langkah berikutnya": materi, misi belum dikumpulkan, skor kuis terakhir, status perangkat, eksperimen aktif |
 | S4 | Daftar materi (katalog) | ADD/MODIFY | Pencarian, filter topik, status selesai/belum |
@@ -133,7 +133,7 @@ Rute yang disarankan (sesuaikan dengan struktur yang sudah ada):
 ### 4.2 Dashboard siswa
 - Tampilkan hanya yang membantu tindakan: modul selesai, misi belum dikumpulkan, skor kuis terakhir, status perangkat IoT, eksperimen aktif, aktivitas terbaru.
 - Hindari banyak grafik di halaman awal.
-- Pertahankan maskot BiBoo dan panel Live IoT / Daily Missions / Quiz Corner / Learning Lab dari desain, tetapi datanya harus berasal dari database, bukan statis.
+- Pertahankan maskot Situnas dan panel Live IoT / Daily Missions / Quiz Corner / Learning Lab dari desain, tetapi datanya harus berasal dari database, bukan statis.
 
 ### 4.3 Daftar materi
 Pencarian, filter topik, kartu modul, status selesai/belum, durasi/jenis aktivitas bila ada.

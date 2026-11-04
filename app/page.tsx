@@ -82,7 +82,7 @@ export default function OnboardingPage() {
       const { profile } = await res.json();
       saveStudentProfile(profile);
 
-      await showSuccessAlert(`Halo, ${profile.name}! 🌿`, "BiBoo siap menemanimu belajar hidroponik & IoT!", 1500);
+      await showSuccessAlert(`Halo, ${profile.name}! 🌿`, "Situnas siap menemanimu belajar hidroponik & IoT!", 1500);
       router.push("/beranda");
     } catch {
       setLoggingInId(null);
@@ -131,7 +131,7 @@ export default function OnboardingPage() {
                 <BibooMascot
                   mood="wave"
                   size="lg"
-                  bubbleText="Halo, Petani Muda! Aku BiBoo!"
+                  bubbleText="Halo, Petani Muda! Aku Situnas!"
                   className="mx-auto scale-90 sm:scale-100"
                 />
               </div>

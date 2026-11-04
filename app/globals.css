@@ -125,14 +125,15 @@
     50% { opacity: 0.35; }
   }
 
-  /* BiBoo gentle floating */
-  @keyframes biboo-float {
+  /* Situnas gentle floating */
+  @keyframes situnas-float {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
     50% { transform: translateY(-6px) rotate(1deg); }
   }
 
+  .animate-situnas,
   .animate-biboo {
-    animation: biboo-float 3.2s ease-in-out infinite;
+    animation: situnas-float 3.2s ease-in-out infinite;
   }
 
   @keyframes leaf-sway {
@@ -246,7 +247,7 @@
   }
 }
 
-/* ── SweetAlert2 Custom Theming (BiBoo Style) ────────────────── */
+/* ── SweetAlert2 Custom Theming (Situnas Style) ────────────────── */
 .swal2-container .swal2-popup {
   border-radius: var(--radius-lg) !important;
   padding: 1.5rem !important;

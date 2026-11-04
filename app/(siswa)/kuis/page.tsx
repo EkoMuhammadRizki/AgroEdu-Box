@@ -25,7 +25,7 @@ export default function KuisListPage() {
     <AppShell role="siswa">
       <PageHeader
         title="Portal Kuis Agro-Pintar"
-        description="Uji pemahaman teorimu dan interpretasi data sensor bersama BiBoo!"
+        description="Uji pemahaman teorimu dan interpretasi data sensor bersama Situnas!"
       />
 
       <ContentWrapper className="space-y-6 pb-8">

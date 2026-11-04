@@ -54,7 +54,7 @@ export function AppShell({ role, children }: AppShellProps) {
       await showSuccessAlert(
         "Sampai Jumpa!",
         role === "siswa"
-          ? "Sampai ketemu lagi bersama BiBoo!"
+          ? "Sampai ketemu lagi bersama Situnas!"
           : "Anda telah keluar dari sesi guru.",
         1200
       );

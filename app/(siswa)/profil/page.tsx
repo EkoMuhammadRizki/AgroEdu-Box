@@ -41,7 +41,7 @@ export default function ProfilPage() {
     const nextChar = character === "original" ? "girl" : "original";
     setCharacter(nextChar);
     updateStudentCharacter(nextChar);
-    showToast(`Karakter diganti menjadi BiBoo ${nextChar === "girl" ? "Girl" : "Original"}!`, "success", 1600);
+    showToast(`Karakter diganti menjadi Situnas ${nextChar === "girl" ? "Girl" : "Original"}!`, "success", 1600);
   };
 
   const handleSendFeedback = async (e: React.FormEvent) => {
@@ -89,7 +89,7 @@ export default function ProfilPage() {
                 type="button"
                 onClick={handleToggleCharacter}
                 className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 p-1.5 rounded-full bg-yellow-400 text-ink-900 border-2 border-white shadow-xs hover:scale-110 transition-transform cursor-pointer"
-                title="Ganti karakter BiBoo"
+                title="Ganti karakter Situnas"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
@@ -99,7 +99,7 @@ export default function ProfilPage() {
               <div className="flex items-center gap-2 justify-center sm:justify-start">
                 <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-ink-900">{studentName}</h2>
                 <span className="px-2 py-0.5 rounded-full bg-green-500 text-white text-[9px] sm:text-[10px] font-heading font-extrabold">
-                  {character === "girl" ? "BiBoo Girl" : "BiBoo Ori"}
+                  {character === "girl" ? "Situnas Girl" : "Situnas Ori"}
                 </span>
               </div>
               <p className="text-xs text-ink-600 font-bold">{className} (NIS: 2026-001)</p>

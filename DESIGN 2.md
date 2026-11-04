@@ -8,7 +8,7 @@ Stack: **Next.js**. Token di bawah ditulis sebagai CSS variables (bisa langsung 
 ## 1. Karakter Visual
 
 - **Tema:** Pertanian ceria untuk anak/remaja, gamified, ramah, "soft 3D cartoon".
-- **Maskot:** Tunas hijau bermata besar bernama **BiBoo** (dua daun di atas kepala). Muncul di hampir semua layar sebagai pemandu.
+- **Maskot:** Tunas hijau bermata besar bernama **Situnas** (dua daun di atas kepala). Muncul di hampir semua layar sebagai pemandu.
 - **Suasana:** Cerah, segar, organik. Latar langit biru muda + bukit hijau + awan, dihiasi kupu-kupu dan kumbang (ladybug) kecil.
 - **Bentuk:** Sangat membulat (rounded), tombol berbentuk pil, kartu seperti "bubble", bayangan lembut. Tidak ada sudut tajam.
 - **Nada bahasa:** Menyapa langsung, semangat, bahasa Indonesia santai. Contoh: "Halo, Petani Muda!", "Ayo Mulai!", "Siap Uji Pengetahuan?".
@@ -254,7 +254,7 @@ Grid 2 kolom (desktop) / 1 kolom (mobile):
 | Layar | Isi utama |
 |---|---|
 | Pembuka | Logo "Agro Edu Box" (daun + kotak), judul sambutan, tombol "Mulai Petualangku!" |
-| Input Nama | Maskot BiBoo besar di tengah, form nama |
+| Input Nama | Maskot Situnas besar di tengah, form nama |
 | Profil Karakter | Pilih Original / Girl, input nama, tombol "Masuk!" (kuning) |
 | Character Profile | Maskot + sapaan "Halo, Petani Muda!" |
 | Dashboard Sukses | "Registrasi Sukses, [Nama]! Ayo Mulai!" + preview dashboard |
@@ -266,7 +266,7 @@ Grid 2 kolom (desktop) / 1 kolom (mobile):
 ## 6. Ilustrasi & Aset
 
 - **Gaya:** Vektor/3D kartun lembut, outline minim, highlight putih di permukaan, bayangan hijau.
-- **Maskot BiBoo:** Disediakan dalam beberapa pose (netral, senang, menunjuk, memegang piala, menyemangati). Ekspor PNG/WebP transparan atau SVG; ukuran 2x untuk retina.
+- **Maskot Situnas:** Disediakan dalam beberapa pose (netral, senang, menunjuk, memegang piala, menyemangati). Ekspor PNG/WebP transparan atau SVG; ukuran 2x untuk retina.
 - **Latar:** Langit gradien + 2–3 lapis bukit hijau (SVG) di bagian bawah; awan putih lembut.
 - **Dekorasi:** Kupu-kupu kuning, kumbang merah (ladybug), daun, bintang. Letakkan di sudut, ukuran kecil, `pointer-events: none`.
 - **Ikon:** Rounded, tebal 2–2.5px, isian berwarna (bukan outline tipis). Rekomendasi: Lucide atau Phosphor (duotone) dengan warna token di atas.
@@ -292,7 +292,7 @@ Grid 2 kolom (desktop) / 1 kolom (mobile):
 
 | Elemen | Animasi |
 |---|---|
-| Maskot BiBoo | Mengambang naik-turun halus (3s ease-in-out infinite), daun bergoyang |
+| Maskot Situnas | Mengambang naik-turun halus (3s ease-in-out infinite), daun bergoyang |
 | Tombol | Tekan turun 3px, hover cerah |
 | Pindah layar | Fade + slide-up 250ms |
 | Jawaban benar | Maskot melompat, confetti, bintang +1 beranimasi menuju badge "Bintang" |
@@ -397,7 +397,7 @@ export function Button({ variant = "primary", className = "", ...props }:
 - [ ] Semua tombol jadi pil + efek 3D, 3 varian warna
 - [ ] Semua kartu radius besar + border putih + bayangan hijau lembut
 - [ ] Latar langit + bukit + dekorasi kupu-kupu/ladybug di layar onboarding & hasil
-- [ ] Maskot BiBoo tampil di tiap layar utama dengan pose sesuai konteks
+- [ ] Maskot Situnas tampil di tiap layar utama dengan pose sesuai konteks
 - [ ] Opsi kuis dengan lingkaran huruf A (biru) / B (hijau) / C (kuning)
 - [ ] Badge "Bintang" & "Sensor" di header setiap layar setelah login
 - [ ] Dashboard 4 panel: Live IoT, Daily Missions, Quiz Corner, Interactive Learning Lab

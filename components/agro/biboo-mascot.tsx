@@ -322,3 +322,7 @@ export function BibooMascot({
     </div>
   );
 }
+
+export type SitunasMood = BibooMood;
+export type SitunasMascotProps = BibooMascotProps;
+export const SitunasMascot = BibooMascot;

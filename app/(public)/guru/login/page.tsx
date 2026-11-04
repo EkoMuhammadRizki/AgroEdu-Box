@@ -125,7 +125,7 @@ export default function GuruLoginPage() {
         <p className="text-center text-xs text-ink-600 font-medium">
           Kamu seorang siswa?{" "}
           <Link href="/" className="text-green-700 font-heading font-extrabold hover:underline">
-            Masuk bersama BiBoo →
+            Masuk bersama Situnas →
           </Link>
         </p>
       </div>

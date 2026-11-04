@@ -476,7 +476,7 @@ export default function KuisPage() {
         <div className="flex items-center gap-3 p-3 bg-white/70 rounded-2xl border-2 border-green-200">
           <BibooMascot mood="happy" size="sm" character={character} animated={false} />
           <p className="text-xs font-heading font-bold text-ink-600">
-            BiBoo: "Baca soalnya pelan-pelan ya! Kamu pasti bisa menjawabnya dengan benar!"
+            Situnas: "Baca soalnya pelan-pelan ya! Kamu pasti bisa menjawabnya dengan benar!"
           </p>
         </div>
 

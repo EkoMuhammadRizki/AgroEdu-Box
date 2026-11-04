@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     default: "Agro-Edu Box",
     template: "%s | Agro-Edu Box",
   },
-  description: "Platform pembelajaran agrikultur & IoT ceria untuk anak dan remaja bersama BiBoo.",
+  description: "Platform pembelajaran agrikultur & IoT ceria untuk anak dan remaja bersama Situnas.",
 };
 
 export const viewport: Viewport = {
