@@ -3,15 +3,16 @@ import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-sh
 import { GuruStatCard } from "@/components/agro/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { GuruDataState } from "@/components/agro/guru-data-state";
-import { mockDevices } from "@/lib/mock-data";
+import { usePots } from "@/lib/use-pots";
 import { ringkasanKelas } from "@/lib/guru-data";
 import { useGuruData } from "@/lib/use-guru-data";
 import { AlertTriangle, ArrowRight, BookOpen, ClipboardCheck, Cpu, Users } from "lucide-react";
-import { formatTimestamp } from "@/lib/iot";
+import { formatLastSeen, formatTimestamp } from "@/lib/iot";
 import Link from "next/link";
 
 export default function GuruDashboardPage() {
   const { data, failed, reload } = useGuruData();
+  const pots = usePots(10000);
   const kelasInfo = data?.kelas.map((kelas) => ({ kelas, info: ringkasanKelas(data, kelas.id) })) ?? [];
   const total = (key: "jumlahKelompok" | "belumBerkelompok") => kelasInfo.reduce((sum, item) => sum + item.info[key], 0);
 
@@ -93,7 +94,7 @@ export default function GuruDashboardPage() {
               </Link>
             </div>
             <div className="space-y-2">
-              {mockDevices.map((device) => (
+              {pots.map((device) => (
                 <Link
                   key={device.id}
                   href="/guru/iot"
@@ -107,7 +108,7 @@ export default function GuruDashboardPage() {
                       <p className="text-sm font-semibold text-ink group-hover:text-guru-700 transition-colors">{device.name}</p>
                       <p className="text-xs text-ink-muted">
                         {device.status === "offline"
-                          ? "Tidak ada data baru"
+                          ? device.lastDataAt ? `Terakhir menyala: ${formatLastSeen(device.lastDataAt)}` : formatLastSeen(device.lastDataAt)
                           : `Data: ${formatTimestamp(device.lastDataAt)}`}
                       </p>
                     </div>

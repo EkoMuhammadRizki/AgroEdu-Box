@@ -6,7 +6,7 @@ import { Search, SlidersHorizontal, BookOpen, CheckCircle, Clock } from "lucide-
 import { useState } from "react";
 import { showToast } from "@/lib/swal";
 
-const TOPICS = ["Semua", "Dasar-Dasar", "Nutrisi", "Teknologi", "Perlindungan"];
+const TOPICS = ["Semua", ...Array.from(new Set(mockModules.map((m) => m.topic)))];
 
 export default function MateriPage() {
   const [search, setSearch] = useState("");

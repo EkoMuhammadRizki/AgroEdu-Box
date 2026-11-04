@@ -1,6 +1,6 @@
 // lib/iot-store.ts
 import { Device, SensorReading, SensorHistoryPoint, IotStatus } from "./types";
-import { mockDevices, mockSensorHistory } from "./mock-data";
+import { POT_DEVICES, mockDevices, mockSensorHistory } from "./mock-data";
 
 interface IotStoreState {
   devices: Device[];
@@ -27,6 +27,12 @@ export function getStore(): IotStoreState {
   return globalRef.__agroIotStore;
 }
 
+/** Menerima "pot-a", "Pot A", "POT_A", atau "a". Mengembalikan null bila bukan salah satu dari empat pot. */
+export function resolvePotId(raw: string): string | null {
+  const key = raw.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/^pot/, "");
+  return POT_DEVICES.find((pot) => pot.id === `pot-${key}`)?.id ?? null;
+}
+
 export interface IngestReadingInput {
   sensorType: "soil_moisture" | "air_temp" | string;
   value: number;
@@ -47,21 +53,8 @@ export function ingestTelemetryData(payload: IngestPayload) {
   const nowIso = new Date().toISOString();
   const timeLabel = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 
-  let targetDevice = store.devices.find((d) => d.id === payload.deviceId);
-
-  if (!targetDevice) {
-    // Automatically register unknown devices
-    targetDevice = {
-      id: payload.deviceId,
-      name: `Box ${payload.deviceId}`,
-      boxId: `box-${payload.deviceId}`,
-      classId: "kelas-1",
-      status: "online",
-      lastDataAt: nowIso,
-      sensors: [],
-    };
-    store.devices.push(targetDevice);
-  }
+  const targetDevice = store.devices.find((d) => d.id === payload.deviceId);
+  if (!targetDevice) throw new Error(`Perangkat ${payload.deviceId} tidak dikenal`);
 
   targetDevice.status = "online";
   targetDevice.lastDataAt = nowIso;

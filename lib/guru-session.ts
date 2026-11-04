@@ -29,3 +29,13 @@ export async function isValidGuruSession(token: string | undefined) {
     return false;
   }
 }
+
+export async function getGuruIdFromSession(token: string | undefined): Promise<string | null> {
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, getKey(), { algorithms: ["HS256"] });
+    return typeof payload.sub === "string" ? payload.sub : null;
+  } catch {
+    return null;
+  }
+}

@@ -19,7 +19,7 @@ create table if not exists public.siswa (
   no_induk      text not null,
   jenis_kelamin text not null check (jenis_kelamin in ('L', 'P')),
   karakter      text not null default 'original' check (karakter in ('original', 'girl')),
-  bintang       integer not null default 120 check (bintang >= 0),
+  bintang       integer not null default 0 check (bintang >= 0),
   created_at    timestamptz not null default now()
 );
 

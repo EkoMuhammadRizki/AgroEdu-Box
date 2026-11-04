@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { ingestTelemetryData, getStore } from "@/lib/iot-store";
+import { ingestTelemetryData, getStore, resolvePotId } from "@/lib/iot-store";
+import { toLiveDevice } from "@/lib/iot";
+
+const SUPPORTED_SENSORS = ["soil_moisture", "air_temp"];
 
 export async function POST(request: Request) {
   try {
@@ -27,11 +30,30 @@ export async function POST(request: Request) {
       );
     }
 
+    const deviceId = resolvePotId(String(body.deviceId));
+    if (!deviceId) {
+      return NextResponse.json(
+        { success: false, error: "deviceId tidak dikenal. Gunakan pot-a, pot-b, pot-c, atau pot-d." },
+        { status: 400 }
+      );
+    }
+
+    // Angka yang bukan angka tidak boleh masuk, supaya siswa tidak melihat "NaN".
+    const readings = body.readings
+      .map((item: any) => ({ ...item, value: Number(item?.value) }))
+      .filter((item: any) => SUPPORTED_SENSORS.includes(item.sensorType) && Number.isFinite(item.value));
+    if (readings.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Tidak ada pembacaan valid. Gunakan sensorType soil_moisture atau air_temp dengan value berupa angka." },
+        { status: 400 }
+      );
+    }
+
     const result = ingestTelemetryData({
-      deviceId: String(body.deviceId),
+      deviceId,
       firmwareVersion: body.firmwareVersion,
       measuredAt: body.measuredAt,
-      readings: body.readings,
+      readings,
     });
 
     return NextResponse.json({
@@ -61,11 +83,11 @@ export async function GET() {
     version: "1.1.0",
     lastIngestTime: store.lastIngestTime || "Belum ada pengiriman sejak server restart",
     totalPacketsReceived: store.totalPacketsReceived,
-    registeredDevices: store.devices.map((d) => ({
+    registeredDevices: store.devices.map((device) => toLiveDevice(device)).map((d) => ({
       id: d.id,
       name: d.name,
       status: d.status,
-      lastDataAt: d.lastDataAt,
+      lastDataAt: d.lastDataAt || null,
       sensorCount: d.sensors.length,
     })),
     docs: {
@@ -73,7 +95,7 @@ export async function GET() {
       endpoint: "/api/iot/ingest",
       headers: { "Content-Type": "application/json" },
       examplePayload: {
-        deviceId: "device-1",
+        deviceId: "pot-a",
         readings: [
           { sensorType: "soil_moisture", value: 45.0, unit: "%" },
           { sensorType: "air_temp", value: 28.5, unit: "°C" },

@@ -1,22 +1,14 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
-import { StatCard } from "@/components/agro/stat-card";
-import { SensorChart } from "@/components/agro/sensor-chart";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { mockDevices, mockSensorHistory } from "@/lib/mock-data";
-import {
-  Thermometer, Droplets, Sprout, Sun, Cpu, ChevronRight,
-  Save, Trash2, Copy, Sparkles, Clock, AlertTriangle, Radio
-} from "lucide-react";
-import { formatTimestamp } from "@/lib/iot";
-import Link from "next/link";
+import { PotMoodCard } from "@/components/agro/pot-mood-card";
+import { POT_DEVICES } from "@/lib/mock-data";
+import { formatLastSeen, readSensor } from "@/lib/iot";
+import { moistureMood, temperatureMood } from "@/lib/pot-mood";
+import { usePots } from "@/lib/use-pots";
+import { getStudentProfile } from "@/lib/student-session";
+import { Save, Trash2, Copy, Sparkles, Clock, Radio, Cpu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { showSuccessAlert, showWarningAlert, showConfirmDialog, showToast } from "@/lib/swal";
-
-const SENSOR_META: Record<string, { label: string; icon: React.ReactNode; color: string; scheme: "orange" | "blue" | "green" | "yellow" }> = {
-  air_temp: { label: "Suhu Udara", icon: <Thermometer className="h-5 w-5" />, color: "#F59A3B", scheme: "orange" },
-  soil_moisture: { label: "Kelembapan Tanah", icon: <Sprout className="h-5 w-5" />, color: "#3F9B2E", scheme: "green" },
-};
 
 interface ObservationNote {
   id: string;
@@ -25,56 +17,31 @@ interface ObservationNote {
   timestamp: string;
 }
 
-const EXAMPLE_NOTE = "Pukul 09.30 WIB — Daun ke-4 mulai tumbuh hijau cerah, media cocopeat terasa lembap gembur. Suhu 28.4°C dan kelembapan tanah 45% terpantau optimal untuk fase vegetatif.";
+const EXAMPLE_NOTE =
+  "Pukul 09.30 WIB: Daun Pot A tampak layu dan tanahnya retak-retak. Sensor menunjukkan kelembapan rendah dan Buzzer D8 berbunyi. Setelah disiram, daunnya mulai segar lagi.";
 
 export default function LabIotPage() {
-  const [devices, setDevices] = useState(mockDevices);
-  const [history, setHistory] = useState<Record<string, { time: string; value: number | null }[]>>(mockSensorHistory);
-  const [selectedDeviceId, setSelectedDeviceId] = useState(mockDevices[0].id);
+  const devices = usePots();
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>(POT_DEVICES[0].id);
+  const [character, setCharacter] = useState<"original" | "girl">("original");
   const [noteText, setNoteText] = useState("");
-  const [savedNotes, setSavedNotes] = useState<ObservationNote[]>([
-    {
-      id: "note-1",
-      deviceName: "Box 1 – Kangkung",
-      content: "Pukul 08.00 WIB: Air nutrisi hidroponik bersirkulasi lancar. Sensor kelembapan tanah menunjukkan 45%, kondisi tanaman segar dan tegak.",
-      timestamp: "Hari ini, 08:05 WIB",
-    },
-  ]);
+  const [savedNotes, setSavedNotes] = useState<ObservationNote[]>([]);
 
   useEffect(() => {
+    const profile = getStudentProfile();
+    if (profile) setCharacter(profile.character);
     try {
       const stored = localStorage.getItem("agro_lab_notes");
-      if (stored) {
-        setSavedNotes(JSON.parse(stored));
-      }
+      if (stored) setSavedNotes(JSON.parse(stored));
     } catch {
       // ignore
     }
-
-    const fetchLiveData = async () => {
-      try {
-        const res = await fetch("/api/iot/data");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.devices && json.devices.length > 0) {
-            setDevices(json.devices);
-          }
-          if (json.history) {
-            setHistory(json.history);
-          }
-        }
-      } catch {
-        // fallback
-      }
-    };
-
-    fetchLiveData();
-    const interval = setInterval(fetchLiveData, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const device = devices.find((d) => d.id === selectedDeviceId) || devices[0];
-  const isOffline = device.status === "offline" || device.sensors.length === 0;
+  const live = device.status === "online";
+  const temperature = readSensor(device, "air_temp");
+  const moisture = readSensor(device, "soil_moisture");
 
   const handleSaveNote = async () => {
     if (!noteText.trim()) {
@@ -146,14 +113,16 @@ export default function LabIotPage() {
       />
 
       <ContentWrapper className="space-y-6 pb-10">
-        {/* Device Selector Segment */}
-        <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-thin">
+        {/* Pilih pot */}
+        <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-thin" role="tablist" aria-label="Pilih pot">
           {devices.map((d) => {
             const isSelected = d.id === selectedDeviceId;
             return (
               <button
                 key={d.id}
                 type="button"
+                role="tab"
+                aria-selected={isSelected}
                 onClick={() => setSelectedDeviceId(d.id)}
                 className={`flex-shrink-0 flex items-center gap-2.5 rounded-pill px-5 py-2.5 border-2 font-heading font-bold text-xs md:text-sm transition-all cursor-pointer ${
                   isSelected
@@ -161,23 +130,16 @@ export default function LabIotPage() {
                     : "bg-white border-green-200 text-ink-600 hover:border-green-400"
                 }`}
               >
-                <Cpu className="h-4 w-4" />
                 {d.name}
                 <span
-                  className={`h-2.5 w-2.5 rounded-full ${
-                    d.status === "online"
-                      ? "bg-green-300 dot-pulse"
-                      : d.status === "data_terakhir"
-                      ? "bg-yellow-300"
-                      : "bg-gray-400"
-                  }`}
+                  className={`h-2.5 w-2.5 rounded-full ${d.status === "online" ? "bg-green-300 dot-pulse" : "bg-gray-400"}`}
                 />
               </button>
             );
           })}
         </div>
 
-        {/* Device Info Header */}
+        {/* Info alat */}
         <div className="card-cream flex items-center justify-between flex-wrap gap-3 p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-white border border-green-300 flex items-center justify-center text-green-700 shadow-xs">
@@ -185,78 +147,56 @@ export default function LabIotPage() {
             </div>
             <div>
               <p className="font-heading font-extrabold text-base text-ink-900">{device.name}</p>
-              <p className="text-xs text-ink-600">Alat: ESP32 Rev-3 · ID: {device.id}</p>
+              <p className="text-xs text-ink-600">
+                {live
+                  ? `Terakhir kirim data: ${formatLastSeen(device.lastDataAt)}`
+                  : device.lastDataAt
+                    ? `Terakhir menyala: ${formatLastSeen(device.lastDataAt)}`
+                    : formatLastSeen(device.lastDataAt)}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <StatusBadge status={device.status} />
-            <span className="text-xs text-ink-600 font-bold hidden sm:block">
-              {isOffline ? "Perangkat Terputus" : `Terakhir: ${formatTimestamp(device.lastDataAt)}`}
-            </span>
-          </div>
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-pill border-2 text-xs font-heading font-extrabold ${
+              live ? "bg-green-100 text-green-700 border-green-300" : "bg-[#EAEFE6] text-ink-600 border-ink-300/40"
+            }`}
+          >
+            <span className={`h-2 w-2 rounded-full ${live ? "bg-green-500 dot-pulse" : "bg-gray-400"}`} />
+            {live ? "Alat menyala" : "Alat belum menyala"}
+          </span>
         </div>
 
-        {/* Warnings */}
-        {device.status === "data_terakhir" && (
-          <div className="p-4 rounded-2xl bg-cream-50 border-2 border-yellow-300 flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-            <p className="text-xs md:text-sm text-brown-600 font-medium">
-              <strong>Data Terakhir Tersimpan:</strong> Menampilkan data dari {formatTimestamp(device.lastDataAt)}. Perangkat sedang tidak mengirim data baru secara real-time.
-            </p>
-          </div>
-        )}
-
-        {device.status === "offline" && (
+        {!live && (
           <div className="p-4 rounded-2xl bg-gray-100 border-2 border-gray-300 flex items-start gap-3">
             <Radio className="h-5 w-5 text-gray-500 flex-shrink-0 mt-0.5" />
             <p className="text-xs md:text-sm text-ink-600 font-medium">
-              <strong>Perangkat Offline:</strong> Belum ada data dari sensor Box 3. Hubungkan ESP32 ke jaringan WiFi kelas untuk memulai telemetri.
+              <strong>{device.name} belum menyala.</strong> Si Tunas masih tidur, jadi semua angka 0. Minta gurumu
+              menyalakan alatnya, nanti Si Tunas bangun dan menceritakan kondisi tanamannya!
             </p>
           </div>
         )}
 
-        {/* Sensor Grid */}
-        {!isOffline && (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-              {device.sensors.map((sensor) => {
-                const meta = SENSOR_META[sensor.sensorType];
-                return (
-                  <Link
-                    key={sensor.sensorId}
-                    href={`/lab-iot/${sensor.sensorId}`}
-                    className="block group"
-                    title="Lihat riwayat grafik sensor ini"
-                  >
-                    <StatCard
-                      label={meta.label}
-                      value={sensor.value}
-                      unit={sensor.unit}
-                      status={sensor.connectionStatus}
-                      updatedAt={sensor.measuredAt}
-                      icon={meta.icon}
-                      colorScheme={meta.scheme}
-                    />
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* Interactive Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <SensorChart
-                data={history["s1-temp"] || history[`${device.id}-air_temp`] || []}
-                unit="°C"
-                color="#F59A3B"
-                label="Riwayat Suhu Udara (DHT22)"
-              />
-              <SensorChart
-                data={history["s1-soil"] || history[`${device.id}-soil_moisture`] || []}
-                unit="%"
-                color="#3F9B2E"
-                label="Riwayat Kelembapan Tanah (A0)"
-              />
-            </div>
+        {/* Si Tunas bercerita */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <PotMoodCard
+            title="Suhu Udara"
+            emoji="🌡️"
+            value={temperature}
+            unit="°C"
+            mood={temperatureMood(temperature, live)}
+            scale={["🥶", "😊", "🥵"]}
+            character={character}
+          />
+          <PotMoodCard
+            title="Kelembapan Tanah"
+            emoji="💧"
+            value={moisture}
+            unit="%"
+            mood={moistureMood(moisture, live)}
+            scale={["🏜️", "😊", "🌊"]}
+            character={character}
+          />
+        </div>
 
             {/* ── Catatan Pengamatan Siswa ─────────────────────────────────── */}
             <div className="card space-y-4">
@@ -349,8 +289,6 @@ export default function LabIotPage() {
                 </div>
               )}
             </div>
-          </>
-        )}
       </ContentWrapper>
     </AppShell>
   );

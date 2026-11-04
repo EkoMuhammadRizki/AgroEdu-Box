@@ -3,13 +3,15 @@ import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-sh
 import { BibooMascot } from "@/components/agro/biboo-mascot";
 import { Butterfly, Ladybug } from "@/components/agro/decorative-nature";
 import {
-  mockDevices, mockModules, mockModuleProgress, mockMissions, mockActivities
+  mockModules, mockModuleProgress, mockMissions, mockActivities
 } from "@/lib/mock-data";
 import {
-  Thermometer, Droplets, Sprout, ArrowRight,
+  Sprout, ArrowRight,
   Trophy, CheckCircle2, Clock, Sparkles, BookOpen, Check, Lock
 } from "lucide-react";
-import { formatTimestamp } from "@/lib/iot";
+import { readSensor } from "@/lib/iot";
+import { moistureMood } from "@/lib/pot-mood";
+import { usePots } from "@/lib/use-pots";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getStudentProfile } from "@/lib/student-session";
@@ -19,7 +21,7 @@ import { fetchMissionStatus, type MissionStatus } from "@/lib/mission-status";
 export default function BerandaSiswaPage() {
   const [studentName, setStudentName] = useState("Andi");
   const [character, setCharacter] = useState<"original" | "girl">("original");
-  const [device, setDevice] = useState(mockDevices[0]);
+  const pots = usePots();
   const [completedPots, setCompletedPots] = useState<DailyPot[]>([]);
   const [group, setGroup] = useState<MissionStatus["kelompok"]>(null);
   const [missionsStatus, setMissionsStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -52,26 +54,9 @@ export default function BerandaSiswaPage() {
 
     loadDailyMissions();
 
-    const fetchLiveData = async () => {
-      try {
-        const res = await fetch("/api/iot/data?deviceId=device-1");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.device) {
-            setDevice(json.device);
-          }
-        }
-      } catch {
-        // fallback
-      }
-    };
-
-    fetchLiveData();
-    const interval = setInterval(fetchLiveData, 5000);
-    return () => clearInterval(interval);
   }, []);
 
-  const isOffline = device.status === "offline";
+  const potsOn = pots.filter((pot) => pot.status === "online").length;
 
   return (
     <AppShell role="siswa">
@@ -88,7 +73,7 @@ export default function BerandaSiswaPage() {
               Halo, <span className="text-green-600">{studentName}!</span> Siap Belajar? 🌱
             </h1>
             <p className="text-xs sm:text-sm text-ink-600 max-w-md">
-              Kondisi tanamanmu di <strong>{device.name}</strong> terpantau sehat hari ini. Yuk periksa data sensor dan selesaikan misi!
+              Yuk lihat kabar Si Tunas di <strong>Pot A sampai Pot D</strong>, lalu selesaikan Kartu Misi bersama kelompokmu!
             </p>
             <div className="pt-2 flex flex-wrap gap-2 justify-center md:justify-start">
               <Link href="/lab-iot" className="btn-secondary text-xs h-10 px-4 sm:px-5 gap-1.5 shadow-btn-yellow inline-flex items-center flex-1 sm:flex-initial justify-center">
@@ -127,54 +112,33 @@ export default function BerandaSiswaPage() {
                   LIVE IOT SENSOR STATUS
                 </span>
                 <span className="text-[9px] sm:text-[10px] font-bold text-ink-600">
-                  {formatTimestamp(device.lastDataAt)}
+                  {potsOn}/{pots.length} pot menyala
                 </span>
               </div>
 
-              <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-white/90 border-2 border-green-300 flex items-center justify-center p-1 shadow-xs flex-shrink-0">
-                  <BibooMascot mood="happy" size="sm" character={character} animated={true} />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-heading font-extrabold text-sm sm:text-base text-ink-900 leading-tight truncate">
-                    {device.name}
-                  </p>
-                  <p className="text-[11px] sm:text-xs text-ink-600 mt-0.5 truncate">
-                    Sistem Hidroponik NFT · Minggu ke-3 Vegetatif
-                  </p>
-                  <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-white text-green-700 text-[9px] sm:text-[10px] font-bold border border-green-200">
-                    ✓ Mikroklimat Stabil
-                  </span>
-                </div>
-              </div>
-
-              {/* Sensor Pills Grid — Hanya Suhu Udara & Kelembapan Tanah */}
+              {/* Empat pot: maskot mengikuti kelembapan tanah, angka 0 bila alat belum menyala */}
               <div className="grid grid-cols-2 gap-2 sm:gap-2.5 mb-3 sm:mb-4">
-                {/* Suhu */}
-                <div className="bg-white/90 p-2.5 sm:p-3 rounded-2xl border-2 border-orange-400/30 flex items-center gap-2 sm:gap-3 shadow-xs">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-orange-400/20 text-orange-500 flex items-center justify-center flex-shrink-0">
-                    <Thermometer className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[9px] sm:text-[10px] font-heading font-bold text-ink-600 block truncate">Suhu Udara</span>
-                    <span className="font-heading font-extrabold text-base sm:text-lg text-ink-900 leading-none">
-                      {device.sensors.find((s) => s.sensorType === "air_temp")?.value ?? "28.4"}°C
-                    </span>
-                  </div>
-                </div>
-
-                {/* Kelembapan Tanah */}
-                <div className="bg-white/90 p-2.5 sm:p-3 rounded-2xl border-2 border-blue-400/30 flex items-center gap-2 sm:gap-3 shadow-xs">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-200/50 text-blue-500 flex items-center justify-center flex-shrink-0">
-                    <Droplets className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[9px] sm:text-[10px] font-heading font-bold text-ink-600 block truncate">Kelembapan Tanah</span>
-                    <span className="font-heading font-extrabold text-base sm:text-lg text-ink-900 leading-none">
-                      {device.sensors.find((s) => s.sensorType === "soil_moisture")?.value ?? "45"}%
-                    </span>
-                  </div>
-                </div>
+                {pots.map((pot) => {
+                  const live = pot.status === "online";
+                  const moisture = readSensor(pot, "soil_moisture");
+                  const temperature = readSensor(pot, "air_temp");
+                  return (
+                    <Link
+                      key={pot.id}
+                      href="/lab-iot"
+                      data-pot={pot.id}
+                      className="bg-white/90 p-2 sm:p-2.5 rounded-2xl border-2 border-green-200 hover:border-green-400 flex items-center gap-2 shadow-xs transition-colors"
+                    >
+                      <BibooMascot mood={moistureMood(moisture, live).mood} size="sm" character={character} animated={false} />
+                      <div className="min-w-0">
+                        <p className="font-heading font-extrabold text-xs sm:text-sm text-ink-900 leading-tight">{pot.name}</p>
+                        <p className="text-[10px] sm:text-[11px] text-ink-600 truncate">
+                          {live ? `${Number(temperature.toFixed(1))}°C · ${Number(moisture.toFixed(1))}%` : "Belum menyala"}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
 
@@ -182,7 +146,7 @@ export default function BerandaSiswaPage() {
               href="/lab-iot"
               className="btn-secondary w-full text-center text-xs h-10 sm:h-11 inline-flex items-center justify-center gap-1.5"
             >
-              Lihat Grafik & Catatan Pengamatan
+              Lihat Si Tunas di Lab IoT
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

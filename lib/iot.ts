@@ -1,5 +1,5 @@
 // lib/iot.ts
-import { IotStatus } from "./types";
+import type { Device, IotStatus, SensorReading } from "./types";
 
 export function formatStatusLabel(status: IotStatus): string {
   const map: Record<IotStatus, string> = {
@@ -60,6 +60,49 @@ export function formatTimestamp(isoString: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/** Untuk perangkat yang belum pernah mengirim data, lastDataAt kosong. */
+export function formatLastSeen(isoString: string): string {
+  return isoString ? formatTimestamp(isoString) : "Belum pernah menyala";
+}
+
+const DEFAULT_OFFLINE_AFTER_SECONDS = 120;
+
+/**
+ * Alat dianggap mati bila tidak mengirim data selama ini. Bisa diubah lewat env
+ * IOT_OFFLINE_AFTER_SECONDS (di server) bila ESP32 mengirim data lebih jarang.
+ */
+export function getOfflineAfterMs() {
+  const seconds = Number(process.env.IOT_OFFLINE_AFTER_SECONDS);
+  return (Number.isFinite(seconds) && seconds > 0 ? seconds : DEFAULT_OFFLINE_AFTER_SECONDS) * 1000;
+}
+
+export function isDeviceLive(device: Device, now = Date.now()) {
+  const lastData = Date.parse(device.lastDataAt);
+  return device.sensors.length > 0 && Number.isFinite(lastData) && now - lastData <= getOfflineAfterMs();
+}
+
+/**
+ * Satu aturan untuk semua halaman: alat yang belum atau tidak lagi menyala selalu
+ * menampilkan angka 0, bukan angka lama yang sudah tidak benar.
+ */
+export function toLiveDevice(device: Device, now = Date.now()): Device {
+  if (isDeviceLive(device, now)) return { ...device, status: "online" };
+  return {
+    ...device,
+    status: "offline",
+    sensors: device.sensors.map((sensor): SensorReading => ({
+      ...sensor,
+      value: 0,
+      valid: false,
+      connectionStatus: "offline",
+    })),
+  };
+}
+
+export function readSensor(device: Device, type: SensorReading["sensorType"]) {
+  return device.sensors.find((sensor) => sensor.sensorType === type)?.value ?? 0;
 }
 
 export function formatSensorLabel(type: string): string {

@@ -33,138 +33,77 @@ export const currentStudent = mockStudents[0];
 const NOW = new Date().toISOString();
 const MINS_AGO = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
 
-export const mockDevices: Device[] = [
-  {
-    id: "device-1",
-    name: "Box 1 – Kangkung",
-    boxId: "box-1",
-    classId: "kelas-1",
-    status: "online",
-    lastDataAt: MINS_AGO(2),
-    sensors: [
-      { deviceId: "device-1", sensorId: "s1-temp", sensorType: "air_temp", value: 28.4, unit: "°C", measuredAt: MINS_AGO(2), receivedAt: MINS_AGO(1), valid: true, connectionStatus: "online" },
-      { deviceId: "device-1", sensorId: "s1-soil", sensorType: "soil_moisture", value: 45, unit: "%", measuredAt: MINS_AGO(2), receivedAt: MINS_AGO(1), valid: true, connectionStatus: "online" },
-    ],
-  },
-  {
-    id: "device-2",
-    name: "Box 2 – Bayam",
-    boxId: "box-2",
-    classId: "kelas-1",
-    status: "data_terakhir",
-    lastDataAt: MINS_AGO(47),
-    sensors: [
-      { deviceId: "device-2", sensorId: "s2-temp", sensorType: "air_temp", value: 29.1, unit: "°C", measuredAt: MINS_AGO(47), receivedAt: MINS_AGO(46), valid: true, connectionStatus: "data_terakhir" },
-      { deviceId: "device-2", sensorId: "s2-soil", sensorType: "soil_moisture", value: 38, unit: "%", measuredAt: MINS_AGO(47), receivedAt: MINS_AGO(46), valid: true, connectionStatus: "data_terakhir" },
-    ],
-  },
-  {
-    id: "device-3",
-    name: "Box 3 – Selada",
-    boxId: "box-3",
-    classId: "kelas-2",
-    status: "offline",
-    lastDataAt: MINS_AGO(180),
-    sensors: [],
-  },
-];
+// Empat pot penelitian. Awalnya belum menyala: belum pernah ada data dari ESP32.
+export const POT_DEVICES = [
+  { id: "pot-a", name: "Pot A" },
+  { id: "pot-b", name: "Pot B" },
+  { id: "pot-c", name: "Pot C" },
+  { id: "pot-d", name: "Pot D" },
+] as const;
 
-// ─── SENSOR HISTORY (dummy 24 jam terakhir) ─────────────────────
-function genHistory(base: number, variance: number, points = 24): SensorHistoryPoint[] {
-  return Array.from({ length: points }, (_, i) => {
-    const time = new Date(Date.now() - (points - 1 - i) * 3600_000).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-    const value = i > 20 ? null : parseFloat((base + (Math.random() - 0.5) * variance * 2).toFixed(1));
-    return { time, value };
-  });
-}
+export const mockDevices: Device[] = POT_DEVICES.map(({ id, name }) => ({
+  id,
+  name,
+  boxId: id,
+  classId: "",
+  status: "offline",
+  lastDataAt: "",
+  sensors: [],
+}));
 
-export const mockSensorHistory = {
-  "s1-temp": genHistory(28, 1.5),
-  "s1-soil": genHistory(45, 8),
-};
+// Riwayat tidak lagi ditampilkan ke siswa; tetap dicatat oleh iot-store.
+export const mockSensorHistory: Record<string, SensorHistoryPoint[]> = {};
 
 // ─── MODULES ────────────────────────────────────────────────────
-export const mockModuleProgress: Record<string, number> = { "mod-1": 100, "mod-2": 100, "mod-3": 30 };
+// Materi nyata: satu modul berisi 4 frame storyboard. Video YouTube tampil sebelum
+// storyboard. Video Seri 1 mencakup Frame 2 dan 3, jadi Frame 3 tidak punya video sendiri.
+// Progres belajar belum dilacak di server, jadi semua modul dimulai dari 0%.
+export const mockModuleProgress: Record<string, number> = {};
 
 export const mockModules: Module[] = [
   {
     id: "mod-tanah-suhu", slug: "rahasia-tanah-dan-suhu", title: "Rahasia Tanah & Suhu Udara", topic: "Dasar-Dasar",
-    description: "Tonton video animasi dan baca kisah seru tentang tanah, kelembapan, dan suhu udara bagi tanaman.",
+    description: "Tonton video animasi dan baca storyboard seru tentang tanah, kelembapan, dan suhu udara bagi tanaman.",
     durationMin: 20, status: "terbit", classIds: ["kelas-6a", "kelas-6b"],
     objectives: ["Menjelaskan penyebab tanah tandus", "Memahami pentingnya kelembapan tanah", "Menjelaskan pengaruh suhu udara terhadap tanaman"],
     content: "Tanah dan suhu udara sangat menentukan kehidupan tanaman.",
     lessons: [
       {
-        video: { title: "Awalan", src: "/video/Awalan.mp4", poster: "/video/poster/awalan.jpg" },
-        heading: "Halo Petualang Cilik Agro!",
-        paragraphs: [
-          "Selamat datang di modul materi Agro Edu Box! Sebelum kalian memulai eksperimen langsung di kelas, yuk kita baca dan pelajari bersama kisah seru tentang bagaimana alam bekerja. Kalian akan menemukan rahasia penting mengapa tanah dan suhu udara sangat menentukan kehidupan tanaman kita!",
-        ],
-      },
-      {
+        video: { title: "Video Awalan", youtubeId: "tLrV5XYyXMY", poster: "/video/poster/awalan.jpg" },
         label: "Frame 1",
-        heading: "Indonesia Negeri Subur & Pahlawan Pangan Muda",
-        paragraphs: [
-          "Tahukah kamu bahwa Indonesia adalah salah satu negara tersubur di dunia? Tanah di negeri kita sangat kaya dan matahari bersinar sepanjang tahun. Kehebatan pertanian Indonesia tidak hanya datang dari tanahnya yang subur, tetapi juga dari anak-anak pintar seperti kalian yang mau belajar mencintai dan menjaga tanah air kita.",
-          "Ketika kalian belajar tentang pertanian dan pertanahan sejak kecil, kalian sedang bersiap menjadi pahlawan pangan masa depan. Dengan memahami cara merawat tanah dan tanaman, kalian bisa membantu memastikan seluruh masyarakat Indonesia selalu memiliki makanan sehat yang cukup.",
-        ],
+        heading: "Indonesia, Negara Subur & Pahlawan Pangan Muda",
+        image: {
+          src: "/storyboard/frame1.jpeg",
+          alt: "Storyboard Frame 1: Indonesia negara subur. Tanah yang subur menyediakan kebutuhan tanaman, dan kita belajar menjaga tanah serta air agar menjadi pahlawan pangan masa depan.",
+        },
       },
       {
-        video: { title: "Seri 1: Tanaman Haus", src: "/video/SERI%201-TANAMAN%20HAUS.mp4", poster: "/video/poster/seri-1.jpg" },
+        video: { title: "Seri 1: Tanah Tandus & Tanaman Haus", youtubeId: "cmk-fukj0ko", poster: "/video/poster/seri-1.jpg" },
         label: "Frame 2",
         heading: "Misteri Tanah Tandus & Kehausan Tanaman",
-        paragraphs: [
-          "Pernahkah kamu melihat tanah yang retak-retak dan kering di lapangan atau kebun? Tanah seperti itu disebut tanah tandus. Tanah tandus terjadi ketika air di dalam tanah habis menguap karena udara yang terlalu panas dan tidak ada hujan yang turun dalam waktu lama.",
-          "Ketika tanah menjadi tandus, tanaman tidak bisa menyerap air melalui akarnya. Akibatnya, daun tanaman yang tadinya hijau dan segar akan berubah menjadi lunglai, menguning, dan akhirnya layu. Tanaman yang layu adalah cara alam memberi tahu kita bahwa mereka sedang meminta pertolongan.",
-        ],
+        image: {
+          src: "/storyboard/frame2.jpeg",
+          alt: "Storyboard Frame 2: tanah tandus retak karena air menguap, akar tidak bisa menyerap air, sehingga daun tanaman layu dan meminta pertolongan.",
+        },
       },
       {
         label: "Frame 3",
-        heading: "Rahasia Kelembapan Tanah (Kadar Air)",
-        paragraphs: [
-          "Kelembapan tanah adalah jumlah air yang tersimpan di antara butiran-butiran tanah. Kelembapan tanah sangat menentukan apakah tanaman bisa tumbuh dengan ceria atau malah kehausan. Jika kelembapan tanah terlalu rendah, tanah akan terasa keras dan tanaman akan layu karena kekurangan air.",
-          "Namun, menyiram tanaman juga tidak boleh berlebihan. Jika tanah terlalu becek dan tergenang air, akar tanaman tidak bisa bernapas dengan baik dan bisa membusuk. Oleh karena itu, kita perlu menjaga kelembapan tanah agar berada di tingkat yang pas dan ideal bagi pertumbuhan tanaman.",
-        ],
+        heading: "Rahasia Kelembapan Tanah & Benda Biotik-Abiotik",
+        image: {
+          src: "/storyboard/frame3.jpeg",
+          alt: "Storyboard Frame 3: kelembapan tanah adalah air di antara butiran tanah. Tumbuhan itu biotik, air dan tanah itu abiotik. Air terlalu sedikit membuat layu, terlalu banyak membuat akar busuk.",
+        },
       },
       {
-        video: { title: "Seri 2: Detektif Suhu", src: "/video/SERI%202-DETEKTIF%20SUHU.mp4", poster: "/video/poster/seri-2.jpg" },
+        video: { title: "Seri 2: Detektif Suhu", youtubeId: "mKQYi1ulMLg", poster: "/video/poster/seri-2.jpg" },
         label: "Frame 4",
         heading: "Pengaruh Suhu Udara Terhadap Tanaman",
-        paragraphs: [
-          "Selain kelembapan tanah, suhu udara di sekitar tanaman juga sangat berpengaruh. Suhu udara menunjukkan seberapa panas atau dinginnya cuaca di lingkungan tempat tanaman tumbuh. Saat matahari terik dan suhu udara menjadi sangat tinggi, air dari tanah dan daun akan menguap lebih cepat ke udara.",
-          "Suhu udara yang terlalu panas membuat tanah cepat mengering, sehingga tanaman menjadi lebih cepat haus dari biasanya. Sebaliknya, suhu udara yang pas dan sejuk akan membantu tanaman mengolah makanannya dengan tenang dan tumbuh menjadi pohon yang kuat dan berbuah lebat.",
-        ],
+        image: {
+          src: "/storyboard/frame4.jpeg",
+          alt: "Storyboard Frame 4: suhu udara yang terlalu panas membuat air cepat menguap dan tanaman cepat haus, sedangkan suhu yang pas membuat tanaman tumbuh sehat.",
+        },
       },
     ],
-  },
-  {
-    id: "mod-1", slug: "mengenal-hidroponik", title: "Mengenal Hidroponik", topic: "Dasar-Dasar",
-    description: "Memahami konsep dasar hidroponik dan manfaatnya dalam pertanian modern.",
-    durationMin: 45, status: "terbit", classIds: ["kelas-1", "kelas-2"],
-    objectives: ["Menjelaskan pengertian hidroponik", "Menyebutkan kelebihan dibanding tanah", "Mengidentifikasi jenis media tanam"],
-    content: "Hidroponik adalah metode bercocok tanam tanpa menggunakan tanah...",
-  },
-  {
-    id: "mod-2", slug: "nutrisi-tanaman", title: "Nutrisi & Larutan Nutrisi", topic: "Nutrisi",
-    description: "Memahami kebutuhan nutrisi tanaman dan cara menyiapkan larutan nutrisi AB Mix.",
-    durationMin: 60, status: "terbit", classIds: ["kelas-1", "kelas-2"],
-    objectives: ["Menjelaskan unsur makro dan mikro", "Menghitung konsentrasi larutan", "Menyiapkan larutan AB Mix"],
-    content: "Tanaman membutuhkan 16 unsur hara esensial...",
-  },
-  {
-    id: "mod-3", slug: "sensor-iot-pertanian", title: "Sensor IoT dalam Pertanian", topic: "Teknologi",
-    description: "Memahami cara kerja sensor dan interpretasi data IoT untuk keputusan pertanian.",
-    durationMin: 50, status: "terbit", classIds: ["kelas-1"],
-    objectives: ["Menjelaskan jenis sensor yang digunakan", "Membaca dan menginterpretasikan data sensor", "Mengaitkan data sensor dengan kondisi tanaman"],
-    content: "Sensor IoT memungkinkan pemantauan kondisi tanaman secara real-time...",
-    quizId: "quiz-1",
-  },
-  {
-    id: "mod-4", slug: "hama-penyakit", title: "Hama & Penyakit pada Hidroponik", topic: "Perlindungan",
-    description: "Mengidentifikasi hama dan penyakit umum serta cara pengendaliannya.",
-    durationMin: 55, status: "draf", classIds: ["kelas-1"],
-    objectives: ["Mengidentifikasi hama umum", "Menerapkan pengendalian hama terpadu"],
-    content: "Meskipun lebih bersih dari tanah, hidroponik tetap rentan...",
   },
 ];
 

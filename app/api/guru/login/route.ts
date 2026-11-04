@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Email atau kata sandi salah" }, { status: 401 });
     }
 
-    const response = NextResponse.json({ success: true, nama: data.nama });
+    const response = NextResponse.json({ success: true, nama: data.nama, email });
     response.cookies.set(GURU_COOKIE, await createGuruSession(data.id), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

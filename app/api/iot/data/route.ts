@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/iot-store";
+import { toLiveDevice } from "@/lib/iot";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
@@ -15,7 +18,7 @@ export async function GET(request: Request) {
       }
       return NextResponse.json({
         success: true,
-        device,
+        device: toLiveDevice(device),
         history: store.history,
       });
     }
@@ -29,7 +32,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
-      devices: store.devices,
+      devices: store.devices.map((device) => toLiveDevice(device)),
       history: store.history,
       lastIngestTime: store.lastIngestTime,
       totalPacketsReceived: store.totalPacketsReceived,

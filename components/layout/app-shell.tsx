@@ -15,7 +15,7 @@ interface AppShellProps {
 
 export function AppShell({ role, children }: AppShellProps) {
   const router = useRouter();
-  const [stars, setStars] = useState(120);
+  const [stars, setStars] = useState(0);
   const [authorized, setAuthorized] = useState(role !== "siswa");
 
   useEffect(() => {

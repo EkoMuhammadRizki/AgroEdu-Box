@@ -1,8 +1,8 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
-import { mockDevices, mockSensorHistory } from "@/lib/mock-data";
+import { mockDevices } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { formatTimestamp } from "@/lib/iot";
+import { formatLastSeen } from "@/lib/iot";
 import {
   Cpu, RefreshCw, AlertTriangle, CheckCircle2, Wifi,
   WifiOff, Clock, Database, Settings, ArrowUpRight, Thermometer, Droplets, Sun, Activity
@@ -26,7 +26,7 @@ export default function GuruIotMonitoringPage() {
         }
       }
     } catch {
-      // fallback
+      setDevices(mockDevices);
     }
   };
 
@@ -49,7 +49,7 @@ export default function GuruIotMonitoringPage() {
     <AppShell role="guru">
       <PageHeader
         title="Pemantauan Perangkat IoT"
-        description="Pantau kesehatan mikrokontroler ESP32, telemetri sensor, dan integritas timestamp data di seluruh box."
+        description="Pantau Pot A sampai Pot D: apakah alat menyala, serta suhu udara dan kelembapan tanah yang terbaca."
         action={
           <button
             onClick={handleRefresh}
@@ -66,27 +66,21 @@ export default function GuruIotMonitoringPage() {
         {/* Ringkasan Status Box */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="card bg-surface-muted/60">
-            <p className="text-[11px] uppercase tracking-wider font-bold text-ink-muted">Total Unit Box</p>
-            <p className="text-2xl font-extrabold text-ink mt-1">{devices.length} Unit</p>
+            <p className="text-[11px] uppercase tracking-wider font-bold text-ink-muted">Total Pot</p>
+            <p className="text-2xl font-extrabold text-ink mt-1">{devices.length} Pot</p>
             <p className="text-[11px] text-ink-muted mt-1">ESP32 Telemetri</p>
           </div>
 
           <div className="card bg-emerald-50/50 border-emerald-200">
-            <p className="text-[11px] uppercase tracking-wider font-bold text-emerald-800">Box Online</p>
-            <p className="text-2xl font-extrabold text-emerald-900 mt-1">1 Box</p>
-            <p className="text-[11px] text-emerald-700 mt-1">Koneksi stabil (&lt; 5 menit)</p>
-          </div>
-
-          <div className="card bg-amber-50/50 border-amber-200">
-            <p className="text-[11px] uppercase tracking-wider font-bold text-amber-800">Data Terakhir (Stale)</p>
-            <p className="text-2xl font-extrabold text-amber-900 mt-1">1 Box</p>
-            <p className="text-[11px] text-amber-700 mt-1">Perlu pengecekan daya/WiFi</p>
+            <p className="text-[11px] uppercase tracking-wider font-bold text-emerald-800">Pot Menyala</p>
+            <p className="text-2xl font-extrabold text-emerald-900 mt-1">{devices.filter((d) => d.status === "online").length} Pot</p>
+            <p className="text-[11px] text-emerald-700 mt-1">Mengirim data (&lt; 2 menit)</p>
           </div>
 
           <div className="card bg-rose-50/50 border-rose-200">
-            <p className="text-[11px] uppercase tracking-wider font-bold text-rose-800">Box Offline</p>
-            <p className="text-2xl font-extrabold text-rose-900 mt-1">1 Box</p>
-            <p className="text-[11px] text-rose-700 mt-1">Tidak ada transmisi paket</p>
+            <p className="text-[11px] uppercase tracking-wider font-bold text-rose-800">Pot Belum Menyala</p>
+            <p className="text-2xl font-extrabold text-rose-900 mt-1">{devices.filter((d) => d.status !== "online").length} Pot</p>
+            <p className="text-[11px] text-rose-700 mt-1">Tidak ada data masuk</p>
           </div>
         </div>
 
@@ -124,7 +118,7 @@ export default function GuruIotMonitoringPage() {
               </div>
               <p className="text-xs text-ink-muted mt-1 flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" />
-                Waktu transmisi terakhir: <strong className="text-ink">{formatTimestamp(activeDevice.lastDataAt)}</strong>
+                Data terakhir: <strong className="text-ink">{formatLastSeen(activeDevice.lastDataAt)}</strong>
               </p>
             </div>
 
@@ -143,10 +137,10 @@ export default function GuruIotMonitoringPage() {
             <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3">
               <WifiOff className="h-5 w-5 text-rose-700 flex-shrink-0 mt-0.5" />
               <div className="text-xs text-rose-900 space-y-1">
-                <p className="font-bold">Peringatan: Perangkat Terputus dari Jaringan</p>
+                <p className="font-bold">{activeDevice.name} belum menyala</p>
                 <p>
-                  ESP32 tidak mengirimkan paket telemetri lebih dari 3 jam. Sistem otomatis menyembunyikan data kadaluarsa
-                  agar siswa tidak menarik kesimpulan dari angka yang tidak valid. Periksa koneksi catu daya dan sinyal WiFi sekolah.
+                  ESP32 belum mengirim data, atau berhenti mengirim lebih dari 2 menit. Sistem menampilkan angka 0 agar siswa
+                  tidak membaca angka lama yang sudah tidak benar. Periksa catu daya dan sinyal WiFi sekolah.
                 </p>
               </div>
             </div>

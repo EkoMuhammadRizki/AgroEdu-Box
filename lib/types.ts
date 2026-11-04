@@ -55,11 +55,12 @@ export interface Class {
 }
 
 export interface LessonSection {
-  /** Bila ada, video tampil sebelum teks bagian ini. */
-  video?: { title: string; src: string; poster: string };
+  /** Bila ada, video YouTube tampil sebelum storyboard bagian ini. */
+  video?: { title: string; youtubeId: string; poster: string };
   label?: string;
   heading: string;
-  paragraphs: string[];
+  /** Gambar storyboard; teks bacaan ada di dalam gambar, alt dipakai pembaca layar. */
+  image: { src: string; alt: string };
 }
 
 export interface Module {

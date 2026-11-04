@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/agro/brand-logo";
 import { Eye, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
 import { showSuccessAlert, showWarningAlert } from "@/lib/swal";
-import { saveGuruName } from "@/lib/guru-client";
+import { saveGuruProfile } from "@/lib/guru-client";
 import Link from "next/link";
 
 export default function GuruLoginPage() {
@@ -40,8 +40,8 @@ export default function GuruLoginPage() {
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      const { nama } = await res.json();
-      saveGuruName(nama);
+      const { nama, email } = await res.json();
+      saveGuruProfile({ nama, email: email || form.email });
       await showSuccessAlert("Login Guru Berhasil! 🎓", `Selamat datang kembali, ${nama}.`, 1300);
       router.push("/guru/dashboard");
     } catch {

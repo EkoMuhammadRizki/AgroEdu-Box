@@ -17,7 +17,7 @@ export default function ProfilPage() {
   const [className, setClassName] = useState("Kelas 10A – Agribisnis");
   const [classCode, setClassCode] = useState("AGRO10A");
   const [character, setCharacter] = useState<"original" | "girl">("original");
-  const [stars, setStars] = useState(120);
+  const [stars, setStars] = useState(0);
   const [studentNote, setStudentNote] = useState("");
   const [statusMessage, setStatusMessage] = useState("Sedang Eksperimen Sensor NFT");
 
@@ -30,7 +30,7 @@ export default function ProfilPage() {
         if (parsed.className) setClassName(parsed.className);
         if (parsed.classCode) setClassCode(parsed.classCode);
         if (parsed.character) setCharacter(parsed.character);
-        if (parsed.stars) setStars(parsed.stars);
+        if (typeof parsed.stars === "number") setStars(parsed.stars);
       }
     } catch {
       // ignore
@@ -132,7 +132,7 @@ export default function ProfilPage() {
             className="card text-center p-2.5 sm:p-4 hover:border-green-400 transition-all block group"
           >
             <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 mx-auto mb-1 group-hover:scale-110 transition-transform" />
-            <p className="font-heading font-extrabold text-lg sm:text-2xl text-ink-900 tabular-nums">2 / {mockModules.length}</p>
+            <p className="font-heading font-extrabold text-lg sm:text-2xl text-ink-900 tabular-nums">0 / {mockModules.length}</p>
             <p className="text-[10px] sm:text-xs font-heading font-bold text-ink-600 mt-0.5 truncate group-hover:text-green-600">Modul Selesai →</p>
           </Link>
 

@@ -1,32 +1,83 @@
 "use client";
 import { AppShell, PageHeader, ContentWrapper } from "@/components/layout/app-shell";
 import {
-  Settings, Save, Key, Cpu, Bell, Shield,
-  Check, RefreshCw, Smartphone, Sliders, Info
+  Save, Cpu, Shield,
+  Check, Sliders, Info
 } from "lucide-react";
-import { useState } from "react";
-import { showSuccessAlert, showConfirmDialog } from "@/lib/swal";
+import { useState, useEffect } from "react";
+import { showSuccessAlert } from "@/lib/swal";
+import { getGuruName, getGuruEmail, saveGuruProfile } from "@/lib/guru-client";
 
 export default function GuruPengaturanPage() {
-  const [teacherName, setTeacherName] = useState("Pak Eko Mulyadi, S.P.");
+  const [teacherName, setTeacherName] = useState("");
+  const [teacherEmail, setTeacherEmail] = useState("");
   const [schoolName, setSchoolName] = useState("SMK Pertanian Negeri 1");
   const [telemetryInterval, setTelemetryInterval] = useState("60");
   const [offlineThreshold, setOfflineThreshold] = useState("180");
   const [apiToken, setApiToken] = useState("aeb_live_token_77a94f091bc389d4");
-  const [showToken, setShowToken] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  // Calibration settings per crop
-  const [cropCalibration, setCropCalibration] = useState({
-    kangkung: { minTemp: 24, maxTemp: 30, minSoil: 40, maxSoil: 60, minLight: 2500 },
-    bayam: { minTemp: 22, maxTemp: 28, minSoil: 45, maxSoil: 65, minLight: 2000 },
-    selada: { minTemp: 18, maxTemp: 25, minSoil: 50, maxSoil: 70, minLight: 1800 },
-  });
+  useEffect(() => {
+    // 1. Inisialisasi cepat dari client-side storage
+    const localName = getGuruName();
+    if (localName) setTeacherName(localName);
+
+    const localEmail = getGuruEmail();
+    if (localEmail) setTeacherEmail(localEmail);
+
+    try {
+      const storedSchool = localStorage.getItem("agro_guru_school");
+      if (storedSchool) setSchoolName(storedSchool);
+    } catch {
+      // ignore
+    }
+
+    // 2. Sinkronkan dengan data akun guru dari server session Supabase
+    fetch("/api/guru/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.guru) {
+          if (data.guru.nama) {
+            setTeacherName(data.guru.nama);
+            saveGuruProfile({ nama: data.guru.nama });
+          }
+          if (data.guru.email) {
+            setTeacherEmail(data.guru.email);
+            saveGuruProfile({ email: data.guru.email });
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaved(true);
-    await showSuccessAlert("Pengaturan Berhasil Disimpan!", "Konfigurasi telemetri ESP32 dan ambang batas kalibrasi sensor telah diperbarui.", 1600);
+
+    // Simpan ke local client
+    saveGuruProfile({ nama: teacherName, email: teacherEmail });
+    try {
+      localStorage.setItem("agro_guru_school", schoolName);
+    } catch {
+      // ignore
+    }
+
+    // Perbarui nama di database jika tersambung
+    try {
+      await fetch("/api/guru/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nama: teacherName }),
+      });
+    } catch {
+      // ignore
+    }
+
+    await showSuccessAlert(
+      "Pengaturan Berhasil Disimpan!",
+      "Profil guru dan konfigurasi IoT telah diperbarui.",
+      1600
+    );
     setTimeout(() => setIsSaved(false), 3000);
   };
 
@@ -60,6 +111,7 @@ export default function GuruPengaturanPage() {
                   type="text"
                   required
                   value={teacherName}
+                  placeholder="Nama Guru"
                   onChange={(e) => setTeacherName(e.target.value)}
                   className="input-field text-xs"
                 />
@@ -71,18 +123,19 @@ export default function GuruPengaturanPage() {
                   type="text"
                   required
                   value={schoolName}
+                  placeholder="Nama Sekolah"
                   onChange={(e) => setSchoolName(e.target.value)}
                   className="input-field text-xs"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-ink block mb-1">Email Guru</label>
+                <label className="text-xs font-semibold text-ink block mb-1">Email Guru (Akun Terdaftar)</label>
                 <input
                   type="email"
                   disabled
-                  value="eko.guru@agroedubox.id"
-                  className="input-field text-xs bg-surface-muted text-ink-muted cursor-not-allowed"
+                  value={teacherEmail || "guru.agroedubox@gmail.com"}
+                  className="input-field text-xs bg-surface-muted text-ink-muted cursor-not-allowed font-medium"
                 />
               </div>
 
@@ -110,43 +163,23 @@ export default function GuruPengaturanPage() {
                 <label className="text-xs font-semibold text-ink block mb-1">Token Autentikasi Ingest Telemetri</label>
                 <div className="flex gap-2">
                   <input
-                    type={showToken ? "text" : "password"}
-                    readOnly
+                    type="password"
+                    disabled
                     value={apiToken}
-                    className="input-field text-xs font-mono flex-1 bg-surface-muted"
+                    className="input-field text-xs font-mono bg-surface-muted text-ink-muted cursor-not-allowed flex-1"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowToken(!showToken)}
-                    className="btn-secondary text-xs"
-                  >
-                    {showToken ? "Sembunyikan" : "Tampilkan"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const confirm = await showConfirmDialog({
-                        title: "Generate Token Baru?",
-                        text: "Token lama tidak akan berlaku lagi. Perangkat ESP32 harus dikonfigurasi ulang dengan token baru.",
-                        icon: "warning",
-                        confirmButtonText: "Ya, Buat Token Baru",
-                        cancelButtonText: "Batal",
-                        role: "guru",
-                      });
-                      if (confirm.isConfirmed) {
-                        const newToken = `aeb_live_${Math.random().toString(36).substring(2, 12)}`;
-                        setApiToken(newToken);
-                        await showSuccessAlert("Token Baru Berhasil Dibuat!", `Token ingest: ${newToken}`, 1600);
-                      }
+                    onClick={() => {
+                      navigator.clipboard?.writeText(apiToken);
+                      alert("Token disalin ke papan klip!");
                     }}
-                    className="btn-secondary text-xs gap-1 inline-flex items-center cursor-pointer"
-                    title="Generate Token Baru"
+                    className="btn-ghost text-xs px-3"
                   >
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    Reset
+                    Salin
                   </button>
                 </div>
-                <p className="text-[11px] text-ink-muted mt-1">
+                <p className="text-[11px] text-ink-muted mt-1 leading-relaxed">
                   Gunakan token ini pada header HTTP POST <code className="font-mono text-ink">X-Box-Token</code> saat ESP32 mengirim paket telemetri ke endpoint <code className="font-mono text-ink">/api/iot/ingest</code>.
                 </p>
               </div>

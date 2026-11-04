@@ -8,10 +8,11 @@ import {
 } from "lucide-react";
 import { showConfirmDialog, showSuccessAlert } from "@/lib/swal";
 import { PROFILE_UPDATED_EVENT, getStudentProfile, logoutStudent } from "@/lib/student-session";
-import { getGuruName, logoutGuru } from "@/lib/guru-client";
+import { getGuruName, logoutGuru, GURU_PROFILE_UPDATED_EVENT } from "@/lib/guru-client";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
 import { BrandIcon } from "@/components/agro/brand-logo";
 import { useEffect, useState } from "react";
+import { usePots } from "@/lib/use-pots";
 
 type NavItem = { href: string; label: string; shortLabel: string; icon: React.ElementType };
 
@@ -53,8 +54,10 @@ export function Sidebar({ role }: SidebarProps) {
     className: "",
     classCode: "",
     character: "original",
-    stars: 120,
+    stars: 0,
   });
+  const pots = usePots(10000);
+  const iotOn = pots.some((pot) => pot.status === "online");
 
   const [guruName, setGuruName] = useState("");
 
@@ -77,13 +80,19 @@ export function Sidebar({ role }: SidebarProps) {
   }, [role]);
 
   useEffect(() => {
-    if (role !== "siswa") return;
-    const syncProfile = () => {
-      const updated = getStudentProfile();
-      if (updated) setStudentProfile((prev) => ({ ...prev, ...updated }));
-    };
-    window.addEventListener(PROFILE_UPDATED_EVENT, syncProfile);
-    return () => window.removeEventListener(PROFILE_UPDATED_EVENT, syncProfile);
+    if (role === "siswa") {
+      const syncProfile = () => {
+        const updated = getStudentProfile();
+        if (updated) setStudentProfile((prev) => ({ ...prev, ...updated }));
+      };
+      window.addEventListener(PROFILE_UPDATED_EVENT, syncProfile);
+      return () => window.removeEventListener(PROFILE_UPDATED_EVENT, syncProfile);
+    }
+    if (role === "guru") {
+      const syncGuru = () => setGuruName(getGuruName());
+      window.addEventListener(GURU_PROFILE_UPDATED_EVENT, syncGuru);
+      return () => window.removeEventListener(GURU_PROFILE_UPDATED_EVENT, syncGuru);
+    }
   }, [role]);
 
   const navItems = role === "siswa" ? SISWA_NAV : GURU_NAV;
@@ -147,9 +156,14 @@ export function Sidebar({ role }: SidebarProps) {
               <p className="font-heading font-extrabold text-base text-ink-900 leading-tight">{studentProfile.stars} ⭐</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-pill bg-green-100 text-green-700 text-[10px] font-bold border border-green-300">
-            <span className="w-2 h-2 rounded-full bg-green-500 dot-pulse" />
-            IoT Aktif
+          <div
+            data-iot-status={iotOn ? "on" : "off"}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-pill text-[10px] font-bold border ${
+              iotOn ? "bg-green-100 text-green-700 border-green-300" : "bg-gray-100 text-gray-500 border-gray-300"
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${iotOn ? "bg-green-500 dot-pulse" : "bg-gray-400"}`} />
+            {iotOn ? "IoT Aktif" : "IoT Mati"}
           </div>
         </div>
       )}

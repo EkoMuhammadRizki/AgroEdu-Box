@@ -97,7 +97,7 @@ Alat mikrokontroler (Arduino/ESP32) mengirimkan data ke sistem melalui HTTP POST
 ### Contoh Payload JSON:
 ```json
 {
-  "deviceId": "device-1",
+  "deviceId": "pot-a",
   "firmwareVersion": "1.0.0",
   "readings": [
     {
