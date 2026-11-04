@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BrandLogo } from "@/components/agro/brand-logo";
 import { Eye, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
 import { showSuccessAlert, showWarningAlert } from "@/lib/swal";
 import Link from "next/link";
@@ -35,11 +36,7 @@ export default function GuruLoginPage() {
       <div className="w-full max-w-sm space-y-6">
         {/* Logo */}
         <div className="text-center space-y-2">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-3xl bg-white shadow-card flex items-center justify-center border-2 border-blue-200">
-              <span className="text-3xl">🌿</span>
-            </div>
-          </div>
+          <BrandLogo className="w-56 mx-auto" />
           <div>
             <h1 className="font-heading font-extrabold text-2xl text-ink-900 tracking-tight">
               AGRO EDU TRACK

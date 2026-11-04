@@ -10,6 +10,8 @@ import {
   Check, X, RefreshCw, Printer, Maximize2, ArrowRight
 } from "lucide-react";
 import { showSuccessAlert, showWarningAlert, showConfirmDialog, showToast } from "@/lib/swal";
+import { getStudentProfile, updateStudentProgress } from "@/lib/student-session";
+import { BrandIcon } from "@/components/agro/brand-logo";
 import Link from "next/link";
 
 export default function KuisPage() {
@@ -76,16 +78,10 @@ export default function KuisPage() {
       setSubmitted(true);
 
       // Add stars reward to session
-      try {
-        const stored = localStorage.getItem("agro_student_profile");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          const bonus = calculatedScore >= 80 ? 50 : 30;
-          parsed.stars = (parsed.stars || 120) + bonus;
-          localStorage.setItem("agro_student_profile", JSON.stringify(parsed));
-        }
-      } catch {
-        // ignore
+      const profile = getStudentProfile();
+      if (profile) {
+        const bonus = calculatedScore >= 80 ? 50 : 30;
+        updateStudentProgress({ stars: profile.stars + bonus });
       }
 
       if (calculatedScore >= 80) {
@@ -265,11 +261,11 @@ export default function KuisPage() {
               {/* Certificate Canvas Frame */}
               <div className="relative border-4 border-double border-green-600 rounded-2xl p-6 md:p-8 bg-gradient-to-b from-[#FFFBEA] via-white to-[#EAF6D9] text-center space-y-4">
                 <div className="flex items-center justify-center gap-3">
-                  <span className="text-3xl">🌱</span>
+                  <BrandIcon className="w-11 h-11 flex-shrink-0" />
                   <span className="font-heading font-extrabold text-xl md:text-2xl text-green-700 tracking-tight">
                     AGRO-EDU BOX INDONESIA
                   </span>
-                  <span className="text-3xl">🌱</span>
+                  <BrandIcon className="w-11 h-11 flex-shrink-0" />
                 </div>
 
                 <div className="space-y-1">
@@ -348,7 +344,9 @@ export default function KuisPage() {
           <div className="fixed inset-0 z-50 bg-gradient-to-b from-blue-900 via-indigo-900 to-black text-white flex flex-col justify-between p-8 overflow-hidden animate-fadeIn">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">🌱</span>
+                <span className="w-11 h-11 rounded-full bg-white p-0.5 flex-shrink-0">
+                  <BrandIcon />
+                </span>
                 <span className="font-heading font-extrabold text-2xl text-yellow-300">
                   Agro-Edu Box · Mode Presentasi Kelas
                 </span>

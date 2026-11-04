@@ -1,10 +1,11 @@
 "use client";
 import { ReactNode, useEffect, useState } from "react";
 import { Sidebar, BottomNav } from "./nav";
-import { BibooMascot } from "@/components/agro/biboo-mascot";
+import { BrandIcon } from "@/components/agro/brand-logo";
 import { Star, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { showConfirmDialog, showSuccessAlert } from "@/lib/swal";
+import { getStudentProfile, logoutStudent } from "@/lib/student-session";
 
 interface AppShellProps {
   role: "siswa" | "guru";
@@ -14,22 +15,18 @@ interface AppShellProps {
 export function AppShell({ role, children }: AppShellProps) {
   const router = useRouter();
   const [stars, setStars] = useState(120);
-  const [character, setCharacter] = useState<"original" | "girl">("original");
+  const [authorized, setAuthorized] = useState(role !== "siswa");
 
   useEffect(() => {
-    if (role === "siswa") {
-      try {
-        const stored = localStorage.getItem("agro_student_profile");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed.stars) setStars(parsed.stars);
-          if (parsed.character) setCharacter(parsed.character);
-        }
-      } catch {
-        // ignore
-      }
+    if (role !== "siswa") return;
+    const profile = getStudentProfile();
+    if (!profile) {
+      router.replace("/");
+      return;
     }
-  }, [role]);
+    setStars(profile.stars);
+    setAuthorized(true);
+  }, [role, router]);
 
   const handleMobileLogout = async () => {
     const result = await showConfirmDialog({
@@ -45,6 +42,7 @@ export function AppShell({ role, children }: AppShellProps) {
     });
 
     if (result.isConfirmed) {
+      if (role === "siswa") await logoutStudent();
       await showSuccessAlert(
         "Sampai Jumpa!",
         role === "siswa"
@@ -56,6 +54,8 @@ export function AppShell({ role, children }: AppShellProps) {
     }
   };
 
+  if (!authorized) return null;
+
   return (
     <div data-role={role} className="min-h-dvh bg-[#F3F9EC] text-ink-900 font-body overflow-x-hidden">
       <Sidebar role={role} />
@@ -63,12 +63,8 @@ export function AppShell({ role, children }: AppShellProps) {
       {/* Top Header Mobile */}
       <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between border-b-2 border-green-200 bg-white/95 backdrop-blur-md px-3.5 py-2 sm:px-4 sm:py-2.5 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-green-100 border border-green-300 flex items-center justify-center p-0.5 flex-shrink-0">
-            {role === "siswa" ? (
-              <BibooMascot mood="happy" size="sm" character={character} animated={false} />
-            ) : (
-              <span className="text-base">🌿</span>
-            )}
+          <div className="w-8 h-8 rounded-xl bg-white border border-green-300 flex items-center justify-center p-0.5 flex-shrink-0">
+            <BrandIcon />
           </div>
           <div>
             <span className="font-heading font-extrabold text-sm text-ink-900 tracking-tight leading-none block">

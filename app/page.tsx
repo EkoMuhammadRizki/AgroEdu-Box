@@ -2,74 +2,92 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
+import { BrandIcon } from "@/components/agro/brand-logo";
 import { Butterfly, Ladybug, SoftCloud, HillBackdrop } from "@/components/agro/decorative-nature";
-import { mockClasses } from "@/lib/mock-data";
-import { Check, Sparkles, ArrowRight, Star } from "lucide-react";
+import { Sparkles, ArrowRight, Star } from "lucide-react";
 import { showSuccessAlert, showWarningAlert } from "@/lib/swal";
+import { getStudentProfile, saveStudentProfile } from "@/lib/student-session";
 import Link from "next/link";
+
+interface KelasOption {
+  id: string;
+  nama: string;
+  kode: string;
+  jumlahSiswa: number;
+}
+
+interface SiswaOption {
+  id: string;
+  nama: string;
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
 
-  const [step, setStep] = useState<"welcome" | "identity" | "character">("welcome");
-  const [name, setName] = useState("");
-  const [classId, setClassId] = useState("kelas-1");
-  const [character, setCharacter] = useState<"original" | "girl">("original");
-  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<"welcome" | "kelas" | "nama">("welcome");
+  const [kelasList, setKelasList] = useState<KelasOption[]>([]);
+  const [selectedKelas, setSelectedKelas] = useState<KelasOption | null>(null);
+  const [siswaList, setSiswaList] = useState<SiswaOption[]>([]);
+  const [loadingList, setLoadingList] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [loggingInId, setLoggingInId] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("agro_student_profile");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.name) {
-          setName(parsed.name);
-          if (parsed.classId) setClassId(parsed.classId);
-          if (parsed.character) setCharacter(parsed.character);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+    if (getStudentProfile()) router.replace("/beranda");
+  }, [router]);
 
-  const handleNextToCharacter = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      showWarningAlert("Nama Masih Kosong", "Silakan masukkan nama panggilan atau nama lengkapmu dulu ya!");
-      return;
+  const loadList = async <T,>(url: string, onLoaded: (json: T) => void, errorMessage: string) => {
+    setLoadingList(true);
+    setLoadError("");
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      onLoaded(await res.json());
+    } catch {
+      setLoadError(errorMessage);
+    } finally {
+      setLoadingList(false);
     }
-    setStep("character");
   };
 
-  const handleCompleteLogin = async () => {
-    setLoading(true);
-    const selectedClass = mockClasses.find((c) => c.id === classId) || mockClasses[0];
-
-    const studentProfile = {
-      id: `siswa-${Date.now()}`,
-      name: name.trim(),
-      classId: selectedClass.id,
-      className: selectedClass.name,
-      classCode: selectedClass.code,
-      character,
-      stars: 120,
-      registeredAt: new Date().toISOString(),
-    };
-
-    try {
-      localStorage.setItem("agro_student_profile", JSON.stringify(studentProfile));
-    } catch {
-      // ignore
-    }
-
-    await showSuccessAlert(
-      `Halo, ${name.trim()}! 🌿`,
-      `Karakter ${character === "girl" ? "BiBoo Girl" : "BiBoo Original"} siap menemanimu belajar hidroponik & IoT!`,
-      1500
+  const openKelasStep = () => {
+    setStep("kelas");
+    loadList<{ kelas: KelasOption[] }>(
+      "/api/kelas",
+      (json) => setKelasList(json.kelas),
+      "Daftar kelas belum bisa dimuat. Periksa internetmu lalu coba lagi."
     );
+  };
 
-    router.push("/beranda");
+  const openNamaStep = (kelas: KelasOption) => {
+    setSelectedKelas(kelas);
+    setSiswaList([]);
+    setStep("nama");
+    loadList<{ siswa: SiswaOption[] }>(
+      `/api/kelas/${encodeURIComponent(kelas.id)}/siswa`,
+      (json) => setSiswaList(json.siswa),
+      "Daftar nama belum bisa dimuat. Periksa internetmu lalu coba lagi."
+    );
+  };
+
+  const handleLogin = async (siswaId: string) => {
+    setLoggingInId(siswaId);
+    try {
+      const res = await fetch("/api/siswa/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siswaId }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const { profile } = await res.json();
+      saveStudentProfile(profile);
+
+      await showSuccessAlert(`Halo, ${profile.name}! 🌿`, "BiBoo siap menemanimu belajar hidroponik & IoT!", 1500);
+      router.push("/beranda");
+    } catch {
+      setLoggingInId(null);
+      showWarningAlert("Belum Bisa Masuk", "Periksa internetmu lalu ketuk namamu sekali lagi ya!");
+    }
   };
 
   return (
@@ -82,7 +100,7 @@ export default function OnboardingPage() {
       <header className="relative z-10 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 max-w-5xl mx-auto w-full gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white shadow-card flex items-center justify-center p-1 border-2 border-green-200 flex-shrink-0">
-            <span className="text-lg sm:text-xl">🌱</span>
+            <BrandIcon />
           </div>
           <div className="min-w-0">
             <span className="font-heading font-extrabold text-base sm:text-lg text-ink-900 tracking-tight block leading-tight truncate">
@@ -113,7 +131,6 @@ export default function OnboardingPage() {
                 <BibooMascot
                   mood="wave"
                   size="lg"
-                  character={character}
                   bubbleText="Halo, Petani Muda! Aku BiBoo!"
                   className="mx-auto scale-90 sm:scale-100"
                 />
@@ -140,7 +157,7 @@ export default function OnboardingPage() {
 
               <button
                 type="button"
-                onClick={() => setStep("identity")}
+                onClick={openKelasStep}
                 className="btn-primary w-full text-sm sm:text-base h-12 group cursor-pointer"
               >
                 Mulai Petualanganku!
@@ -149,170 +166,105 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* STEP 2: INPUT NAMA & KELAS */}
-          {step === "identity" && (
+          {/* STEP 2: PILIH KELAS */}
+          {step === "kelas" && (
             <div className="card-cream space-y-4 sm:space-y-5 p-5 sm:p-7 shadow-card">
               <div className="text-center">
-                <BibooMascot
-                  mood="thinking"
-                  size="md"
-                  character={character}
-                  className="mx-auto -mt-1"
-                />
+                <BibooMascot mood="thinking" size="md" className="mx-auto -mt-1" />
                 <h2 className="font-heading font-extrabold text-lg sm:text-xl md:text-2xl text-ink-900 mt-1">
-                  Siapa Namamu, Petani Cilik?
+                  Kamu Kelas Berapa?
                 </h2>
-                <p className="text-xs text-ink-600">
-                  Masukkan identitasmu agar sertifikat dan misimu tersimpan rapi.
-                </p>
+                <p className="text-xs text-ink-600">Pilih kelasmu untuk melihat daftar nama.</p>
               </div>
 
-              <form onSubmit={handleNextToCharacter} className="space-y-3.5">
-                <div>
-                  <label htmlFor="student-name" className="block text-xs font-heading font-bold text-ink-600 mb-1">
-                    Nama Panggilan / Lengkap <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="student-name"
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Contoh: Andi Pratama"
-                    className="input-field"
-                    autoFocus
-                  />
-                </div>
+              {loadingList && <p className="text-center text-sm text-ink-600 py-6">Memuat daftar kelas...</p>}
 
-                <div>
-                  <label htmlFor="class-select" className="block text-xs font-heading font-bold text-ink-600 mb-1">
-                    Pilih Kelas / Kelompok <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="class-select"
-                    value={classId}
-                    onChange={(e) => setClassId(e.target.value)}
-                    className="input-field bg-white cursor-pointer"
-                  >
-                    {mockClasses.map((cls) => (
-                      <option key={cls.id} value={cls.id}>
-                        {cls.name} ({cls.code})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="pt-2 flex gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setStep("welcome")}
-                    className="btn-ghost flex-1 text-xs sm:text-sm"
-                  >
-                    Kembali
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-primary flex-[2] text-xs sm:text-sm h-11 sm:h-12"
-                  >
-                    Lanjut Pilih Karakter
-                    <ArrowRight className="w-4 h-4" />
+              {loadError && (
+                <div className="text-center space-y-2 py-4">
+                  <p className="text-sm text-ink-600">{loadError}</p>
+                  <button type="button" onClick={openKelasStep} className="btn-primary w-full text-sm h-11">
+                    Coba Lagi
                   </button>
                 </div>
-              </form>
+              )}
+
+              {!loadingList && !loadError && (
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  {kelasList.map((kelas) => (
+                    <button
+                      key={kelas.id}
+                      type="button"
+                      onClick={() => openNamaStep(kelas)}
+                      className="p-4 sm:p-5 rounded-2xl border-3 border-white bg-white hover:border-green-500 hover:bg-green-50 flex flex-col items-center gap-1 transition-all cursor-pointer"
+                    >
+                      <span className="font-heading font-extrabold text-lg sm:text-xl text-ink-900">{kelas.nama}</span>
+                      <span className="text-[11px] text-ink-600">{kelas.jumlahSiswa} siswa</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <button type="button" onClick={() => setStep("welcome")} className="btn-ghost w-full text-xs sm:text-sm">
+                Kembali
+              </button>
             </div>
           )}
 
-          {/* STEP 3: PILIH KARAKTER (ORIGINAL VS GIRL) */}
-          {step === "character" && (
-            <div className="card-cream space-y-4 sm:space-y-5 p-5 sm:p-7 shadow-card">
+          {/* STEP 3: PILIH NAMA, LANGSUNG MASUK */}
+          {step === "nama" && selectedKelas && (
+            <div className="card-cream space-y-3.5 sm:space-y-4 p-5 sm:p-7 shadow-card">
               <div className="text-center">
                 <h2 className="font-heading font-extrabold text-lg sm:text-xl md:text-2xl text-ink-900">
-                  Pilih Karakter BiBoo-mu!
+                  Siapa Namamu?
                 </h2>
-                <p className="text-xs text-ink-600">
-                  Pilih teman belajar favoritmu untuk menemani petualangan.
-                </p>
+                <p className="text-xs text-ink-600">{selectedKelas.nama} · Ketuk namamu untuk masuk.</p>
               </div>
 
-              {/* Character selection cards */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {/* Original Character */}
-                <button
-                  type="button"
-                  onClick={() => setCharacter("original")}
-                  className={`p-3 sm:p-4 rounded-2xl border-3 flex flex-col items-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
-                    character === "original"
-                      ? "border-green-500 bg-green-100 shadow-card scale-102 sm:scale-105"
-                      : "border-white bg-white hover:bg-green-50"
-                  }`}
-                >
-                  <BibooMascot
-                    mood="happy"
-                    size="md"
-                    character="original"
-                    animated={character === "original"}
-                  />
-                  <div className="text-center">
-                    <span className="font-heading font-extrabold text-xs sm:text-sm text-ink-900 block leading-tight">
-                      BiBoo Original
-                    </span>
-                    <span className="text-[10px] text-ink-600">Tunas Ceria Hijau</span>
-                  </div>
-                  {character === "original" && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500 text-white text-[9px] sm:text-[10px] font-bold">
-                      <Check className="w-3 h-3" /> Terpilih
-                    </span>
-                  )}
-                </button>
+              {loadingList && <p className="text-center text-sm text-ink-600 py-6">Memuat daftar nama...</p>}
 
-                {/* Girl Character */}
-                <button
-                  type="button"
-                  onClick={() => setCharacter("girl")}
-                  className={`p-3 sm:p-4 rounded-2xl border-3 flex flex-col items-center gap-1.5 sm:gap-2 transition-all cursor-pointer ${
-                    character === "girl"
-                      ? "border-green-500 bg-green-100 shadow-card scale-102 sm:scale-105"
-                      : "border-white bg-white hover:bg-green-50"
-                  }`}
-                >
-                  <BibooMascot
-                    mood="happy"
-                    size="md"
-                    character="girl"
-                    animated={character === "girl"}
-                  />
-                  <div className="text-center">
-                    <span className="font-heading font-extrabold text-xs sm:text-sm text-ink-900 block leading-tight">
-                      BiBoo Girl
-                    </span>
-                    <span className="text-[10px] text-ink-600">Bunga Merah Muda</span>
-                  </div>
-                  {character === "girl" && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500 text-white text-[9px] sm:text-[10px] font-bold">
-                      <Check className="w-3 h-3" /> Terpilih
-                    </span>
-                  )}
-                </button>
-              </div>
+              {loadError && (
+                <div className="text-center space-y-2 py-4">
+                  <p className="text-sm text-ink-600">{loadError}</p>
+                  <button
+                    type="button"
+                    onClick={() => openNamaStep(selectedKelas)}
+                    className="btn-primary w-full text-sm h-11"
+                  >
+                    Coba Lagi
+                  </button>
+                </div>
+              )}
 
-              <div className="pt-2 flex gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setStep("identity")}
-                  className="btn-ghost flex-1 text-xs sm:text-sm"
-                >
-                  Ganti Nama
-                </button>
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={handleCompleteLogin}
-                  className="btn-secondary flex-[2] text-ink-900 text-xs sm:text-sm h-11 sm:h-12"
-                >
-                  {loading ? "Menyiapkan Lab..." : "Masuk ke Dashboard!"}
-                  <Sparkles className="w-4 h-4 text-brown-600" />
-                </button>
-              </div>
+              {!loadingList && !loadError && (
+                <ul className="max-h-[45dvh] overflow-y-auto space-y-1.5 pr-1">
+                  {siswaList.map((siswa) => (
+                    <li key={siswa.id}>
+                      <button
+                        type="button"
+                        disabled={loggingInId !== null}
+                        onClick={() => handleLogin(siswa.id)}
+                        className="w-full min-h-11 px-3.5 py-2 rounded-xl border-2 border-white bg-white hover:border-green-500 hover:bg-green-50 disabled:opacity-60 text-left text-sm font-bold text-ink-900 flex items-center justify-between gap-2 transition-all cursor-pointer"
+                      >
+                        <span>{siswa.nama}</span>
+                        {loggingInId === siswa.id ? (
+                          <span className="text-[11px] font-normal text-ink-600 flex-shrink-0">Masuk...</span>
+                        ) : (
+                          <ArrowRight className="w-4 h-4 text-green-600 flex-shrink-0" />
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <button
+                type="button"
+                disabled={loggingInId !== null}
+                onClick={openKelasStep}
+                className="btn-ghost w-full text-xs sm:text-sm"
+              >
+                Ganti Kelas
+              </button>
             </div>
           )}
         </div>

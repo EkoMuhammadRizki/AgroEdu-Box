@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { showSuccessAlert, showConfirmDialog, showToast } from "@/lib/swal";
+import { updateStudentProgress } from "@/lib/student-session";
 
 export default function ProfilPage() {
   const [studentName, setStudentName] = useState("Andi Pratama");
@@ -39,14 +40,7 @@ export default function ProfilPage() {
   const handleToggleCharacter = async () => {
     const nextChar = character === "original" ? "girl" : "original";
     setCharacter(nextChar);
-    try {
-      const stored = localStorage.getItem("agro_student_profile");
-      const current = stored ? JSON.parse(stored) : {};
-      current.character = nextChar;
-      localStorage.setItem("agro_student_profile", JSON.stringify(current));
-    } catch {
-      // ignore
-    }
+    updateStudentProgress({ character: nextChar });
     showToast(`Karakter diganti menjadi BiBoo ${nextChar === "girl" ? "Girl" : "Original"}!`, "success", 1600);
   };
 

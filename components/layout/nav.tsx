@@ -7,7 +7,9 @@ import {
   LogOut, Star
 } from "lucide-react";
 import { showConfirmDialog, showSuccessAlert } from "@/lib/swal";
+import { logoutStudent } from "@/lib/student-session";
 import { BibooMascot } from "@/components/agro/biboo-mascot";
+import { BrandIcon } from "@/components/agro/brand-logo";
 import { useEffect, useState } from "react";
 
 type NavItem = { href: string; label: string; shortLabel: string; icon: React.ElementType };
@@ -46,9 +48,9 @@ export function Sidebar({ role }: SidebarProps) {
     character: "original" | "girl";
     stars: number;
   }>({
-    name: "Andi Pratama",
-    className: "Kelas 10A – Agribisnis",
-    classCode: "AGRO10A",
+    name: "",
+    className: "",
+    classCode: "",
     character: "original",
     stars: 120,
   });
@@ -86,6 +88,7 @@ export function Sidebar({ role }: SidebarProps) {
     });
 
     if (result.isConfirmed) {
+      if (role === "siswa") await logoutStudent();
       await showSuccessAlert(
         "Sampai Jumpa!",
         role === "siswa"
@@ -103,14 +106,10 @@ export function Sidebar({ role }: SidebarProps) {
 
   return (
     <aside className="hidden lg:flex flex-col w-60 min-h-dvh bg-white border-r-3 border-green-200/60 p-4 gap-3 fixed left-0 top-0 z-30 shadow-[4px_0_16px_rgba(63,155,46,0.06)]">
-      {/* BiBoo Logo Header */}
+      {/* Logo Header */}
       <Link href={role === "siswa" ? "/beranda" : "/guru/dashboard"} className="flex items-center gap-3 px-2 py-2 mb-1 group">
-        <div className="w-11 h-11 rounded-2xl bg-green-100 border-2 border-green-300 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-          {role === "siswa" ? (
-            <BibooMascot mood="happy" size="sm" character={studentProfile.character} animated={false} />
-          ) : (
-            <span className="text-2xl">🌿</span>
-          )}
+        <div className="w-11 h-11 rounded-2xl bg-white border-2 border-green-300 flex items-center justify-center p-0.5 shadow-sm group-hover:scale-105 transition-transform">
+          <BrandIcon />
         </div>
         <div>
           <p className="font-heading font-extrabold text-base text-ink-900 tracking-tight leading-tight group-hover:text-green-600 transition-colors">

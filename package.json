@@ -9,11 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
     "lucide-react": "^0.511.0",
     "next": "^15.5.28",
     "react": "^19",
     "react-dom": "^19",
     "recharts": "^2.15.3",
+    "server-only": "^0.0.1",
     "sweetalert2": "^11.26.25"
   },
   "devDependencies": {
