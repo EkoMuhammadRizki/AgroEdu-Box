@@ -18,7 +18,7 @@ create table if not exists public.iot_pot (
   suhu_at       timestamptz,
   kelembapan    numeric(5, 2) check (kelembapan between 0 and 100),
   diperbarui_at timestamptz,
-  -- Diisi saat broker mengumumkan alat mati (pesan Last Will MQTT).
+  -- Diisi saat alat dilaporkan mati lewat kiriman {"status":"mati"}.
   offline_at    timestamptz,
   paket         bigint not null default 0
 );
@@ -67,8 +67,8 @@ begin
 end;
 $$;
 
--- Dipanggil saat broker mengabarkan alat mati, supaya semua pot langsung tidur
--- tanpa menunggu batas 2 menit.
+-- Dipanggil saat alat dilaporkan mati, supaya semua pot langsung tidur tanpa
+-- menunggu batas 2 menit.
 create or replace function public.tandai_iot_mati()
 returns integer
 language sql

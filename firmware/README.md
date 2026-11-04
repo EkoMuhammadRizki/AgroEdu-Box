@@ -1,16 +1,16 @@
 # Alat IoT Agro-Edu Box
 
-Satu ESP32 memantau empat pot, lalu mengirim angkanya ke website lewat MQTT.
+Satu ESP32 memantau empat pot, lalu mengirim angkanya langsung ke website.
 
 ```
-ESP32  ──MQTT──►  Broker EMQX  ──webhook──►  /api/iot/ingest  ──►  Supabase
-                                                                      │
-                            Lab IoT siswa & portal guru  ◄────────────┘
+ESP32  ──HTTPS──►  /api/iot/ingest  ──►  Supabase
+                                           │
+                 Lab IoT siswa & portal guru  ◄──┘
 ```
 
-Broker yang meneruskan sendiri pesannya ke website, jadi tidak perlu ada laptop
-yang menyala terus. Vercel tidak bisa berlangganan MQTT karena kodenya hanya
-hidup sebentar setiap kali ada yang membuka halaman.
+Tidak ada perantara, tidak ada layanan pihak ketiga, dan tidak ada akun
+tambahan yang harus dipegang sekolah. Yang dibutuhkan hanya ESP32, WiFi
+sekolah, dan website yang sudah berjalan.
 
 ## 1. Rangkaian
 
@@ -55,78 +55,62 @@ disiram, seperti yang diminta di Kartu Investigasi.
 ## 3. Menyiapkan database
 
 Buka Supabase → SQL Editor, lalu jalankan isi `supabase/iot.sql`. Tanpa langkah
-ini, data alat tidak bisa disimpan.
+ini, data alat tidak bisa disimpan. Aman dijalankan ulang.
 
-## 4. Menyiapkan broker EMQX
+## 4. Token alat
 
-> **Urutannya penting.** Webhook EMQX hanya bisa menghubungi alamat yang
-> terbuka di internet. Alamat `localhost` di komputermu tidak bisa dijangkau.
-> Jadi website harus sudah ter-deploy ke Vercel lebih dulu, lengkap dengan
-> `IOT_INGEST_TOKEN`, sebelum langkah ini dikerjakan.
+Token membuat hanya alat sekolah yang boleh mengirim data. Tanpa itu, siapa pun
+yang tahu alamat websitenya bisa mengirim angka palsu ke dashboard siswa.
 
-1. Daftar di [EMQX Cloud Serverless](https://www.emqx.com/en/cloud/serverless-mqtt)
-   dan buat satu deployment.
-2. Catat **alamat broker** dan **port TLS** (8883) dari halaman **Overview**
-   deployment itu.
-3. Di menu **Access Control → Authentication**, klik **Add**, lalu buat satu
-   pengguna MQTT, misalnya `agro-esp32`, beserta kata sandinya. Ini bukan email
-   akun EMQX-mu. EMQX tidak mengizinkan sambungan tanpa nama pengguna.
-4. Di menu **Data Integration**, tambahkan **HTTP Server** (Webhook):
+1. Buat token acak:
 
-   | Isian | Nilai |
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
+   ```
+
+2. Simpan di tiga tempat, **nilainya harus sama persis**:
+
+   | Tempat | Nama |
    |---|---|
-   | Topik | `agroedubox/kebun/#` |
-   | URL | `https://agro-edu-box.vercel.app/api/iot/ingest` |
-   | Method | `POST` |
-   | Header | `x-iot-token` : isi dengan `IOT_INGEST_TOKEN` |
-   | Header | `Content-Type` : `application/json` |
-   | Body | `${payload}` |
+   | `.env.local` di komputer | `IOT_INGEST_TOKEN` |
+   | Vercel → Settings → Environment Variables (pilih Secret) | `IOT_INGEST_TOKEN` |
+   | `firmware/agro-edu-box/secrets.h` | `INGEST_TOKEN` |
 
-   Kalau form-nya tidak menyediakan header tambahan, pakai
-   `Authorization: Bearer <token>`. Kalau keduanya tidak bisa, boleh juga
-   `...?token=<token>` di URL, tapi cara itu membuat token ikut tercatat di
-   log server, jadi pakai header kalau bisa.
+3. Setelah mengisi di Vercel, lakukan **Redeploy** agar terbaca.
 
-   Kalau isian Body dibiarkan kosong atau diisi template bawaan, tetap jalan:
-   website sudah bisa membuka bungkus `{"payload":"..."}` sendiri.
+Di produksi, website **menolak semua data sensor** selama `IOT_INGEST_TOKEN`
+belum diisi, bukan menerimanya diam-diam.
 
-   Paket Serverless membatasi Data Integration pada 2 connector, 4 rule, dan
-   4 action. Kita hanya memakai 1 connector dan 1 rule, jadi muat. Jatah gratis
-   sekitar 1 juta eksekusi per bulan; dengan pengiriman tiap 10 detik nonstop,
-   pemakaian sekitar 260 ribu per bulan.
+Jangan memotret layar yang menampilkan token ini. Kalau token terlanjur
+tersebar, buat yang baru dengan perintah di atas dan ganti di ketiga tempat.
 
-## 5. Token alat
+## 5. Mengunggah program
 
-`IOT_INGEST_TOKEN` sudah ada di `.env.local` untuk pengujian di komputer sendiri.
-Isi juga di **Vercel → Settings → Environment Variables** (pilih Secret), lalu
-redeploy.
-
-Tanpa token ini, siapa pun yang tahu alamatnya bisa mengirim angka palsu ke
-dashboard. Karena itu, di produksi website akan **menolak semua data** selama
-`IOT_INGEST_TOKEN` belum diisi, bukan menerimanya diam-diam.
-
-## 6. Mengunggah program
-
-1. Di Arduino IDE, pasang board **esp32** (Boards Manager) dan pustaka berikut
+1. Di Arduino IDE, pasang board **esp32** (Boards Manager) dan dua pustaka ini
    lewat Library Manager:
-   - PubSubClient (Nick O'Leary)
    - DHT sensor library (Adafruit) + Adafruit Unified Sensor
    - DIYables_LCD_I2C
+
+   WiFi dan HTTPClient sudah bawaan board ESP32, tidak perlu dipasang.
 2. Salin `secrets.h.example` menjadi `secrets.h`, lalu isi nama WiFi, kata
-   sandi, dan data broker. File `secrets.h` tidak ikut masuk ke GitHub.
+   sandi, dan token. File `secrets.h` tidak ikut masuk ke GitHub.
 3. ESP32 hanya bisa memakai WiFi **2,4 GHz**. Kalau router sekolah memisahkan
    2,4 GHz dan 5 GHz, pilih yang 2,4 GHz.
 4. Pilih board *ESP32 Dev Module*, lalu Upload.
-5. Buka Serial Monitor di 115200 baud. Kalau berhasil, muncul
-   `Menyambung broker MQTT... berhasil.` lalu baris `Terkirim: {...}` tiap
-   10 detik.
+5. Buka Serial Monitor di 115200 baud. Kalau berhasil, tiap 10 detik muncul:
 
-## 7. Menguji tanpa alat
+   ```
+   Terkirim: {"suhu":28.4,"pot":{"a":45.2,"b":62.0,"c":21.5,"d":70.1}}
+   ```
+
+6. Buka `/lab-iot` di website. Keempat pot harus bangun dengan angka yang sama.
+
+## 6. Menguji tanpa alat
 
 Untuk memastikan jalur websitenya jalan sebelum alat siap:
 
 ```bash
-curl -X POST http://localhost:3000/api/iot/ingest \
+curl -X POST https://agro-edu-box.vercel.app/api/iot/ingest \
   -H "Content-Type: application/json" \
   -H "x-iot-token: ISI_TOKEN" \
   -d '{"suhu":28.4,"pot":{"a":45.2,"b":62,"c":21.5,"d":70.1}}'
@@ -135,25 +119,40 @@ curl -X POST http://localhost:3000/api/iot/ingest \
 Lalu buka `/lab-iot`. Si Tunas di Pot C harus sedih (21,5% = kering) dan Pot B
 harus senang (62% = ideal).
 
-Untuk menguji alat mati:
+Untuk mengembalikan semua pot ke keadaan tidur:
 
 ```bash
-curl -X POST http://localhost:3000/api/iot/ingest \
+curl -X POST https://agro-edu-box.vercel.app/api/iot/ingest \
   -H "Content-Type: application/json" \
   -H "x-iot-token: ISI_TOKEN" \
   -d '{"status":"mati"}'
 ```
 
-## 8. Kalau angkanya aneh
+## 7. Kalau ada yang aneh
 
-| Gejala | Kemungkinan sebab |
+Pesan di Serial Monitor sudah menjelaskan sendiri sebagian besar masalah.
+
+| Yang terlihat | Sebab |
 |---|---|
-| Suhu `--C` di LCD | DHT22 lepas atau rusak. Angka suhu sengaja tidak dikirim, bukan dikirim sebagai 0. |
-| Semua pot 0% atau 100% | Kalibrasi salah. Lihat angka ADC di Serial Monitor, lalu sesuaikan `BATAS_KERING` dan `BATAS_BASAH`. |
-| LCD kosong | Alamat I2C bukan 0x27. Coba 0x3F. |
-| Si Tunas tidur padahal alat menyala | Data tidak sampai. Periksa webhook EMQX dan token. |
-| `Menyambung broker MQTT... gagal, kode -2` | Alamat atau port broker salah. |
-| `gagal, kode 5` | Nama pengguna atau kata sandi MQTT salah. |
+| `Gagal kirim, kode 401` | Token di `secrets.h` tidak sama dengan di Vercel |
+| `Gagal kirim, kode 503` | `IOT_INGEST_TOKEN` belum diisi di Vercel, atau belum redeploy |
+| `Gagal kirim, kode 400` | Angka sensor di luar batas wajar; cek kalibrasi |
+| `Gagal kirim, kode -1` | Tidak sampai ke website; cek WiFi sekolah |
+| LCD: `WiFi putus` | Nama atau kata sandi WiFi salah, atau jaringannya 5 GHz |
+| LCD: `Gagal kirim` | WiFi tersambung tapi website menolak; lihat Serial Monitor |
+| Suhu `--C` di LCD | DHT22 lepas atau rusak. Angka suhu sengaja tidak dikirim, bukan dikirim sebagai 0 |
+| Semua pot 0% atau 100% | Kalibrasi salah. Lihat angka ADC di Serial Monitor, lalu sesuaikan `BATAS_KERING` dan `BATAS_BASAH` |
+| LCD kosong | Alamat I2C bukan 0x27. Coba 0x3F |
+| Si Tunas tidur padahal alat menyala | Data tidak sampai. Lihat Serial Monitor |
 
 Website menganggap alat mati bila tidak ada data lebih dari 2 menit. Kalau
 ESP32 diatur mengirim lebih jarang, ubah `IOT_OFFLINE_AFTER_SECONDS` di Vercel.
+
+## 8. Catatan untuk sekolah
+
+- **Matikan alat di luar jam pelajaran.** Selain hemat listrik, ini menjaga
+  pemakaian website tetap jauh di bawah jatah gratis Vercel.
+- **Tidak ada langganan apa pun.** Website berjalan di jatah gratis Vercel dan
+  Supabase. Tidak ada akun pihak ketiga yang bisa kedaluwarsa.
+- **Kalau WiFi sekolah berganti kata sandi**, ubah `secrets.h` lalu unggah
+  ulang programnya. Hanya itu yang perlu diubah.

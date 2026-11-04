@@ -29,7 +29,7 @@ function checkToken(request: Request): NextResponse | null {
     }
     return null;
   }
-  // Tiga cara, supaya form webhook EMQX bisa memakai yang mana pun tersedia.
+  // Tiga cara, supaya alat atau perantara apa pun bisa memakai yang tersedia.
   const given =
     request.headers.get("x-iot-token") ??
     request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
@@ -44,9 +44,9 @@ function angka(value: unknown): number | null {
 }
 
 /**
- * EMQX dapat mengirim pesan MQTT apa adanya, atau membungkusnya sebagai
- * {"payload": "<teks JSON>"}. Keduanya diterima agar form webhook tidak harus
- * diisi dengan template tertentu.
+ * ESP32 mengirim JSON apa adanya. Bentuk terbungkus {"payload": "<teks JSON>"}
+ * juga diterima, supaya perantara seperti broker MQTT bisa dipasang di
+ * kemudian hari tanpa mengubah sisi server.
  */
 function unwrap(body: unknown): Record<string, unknown> | null {
   if (typeof body === "string") {

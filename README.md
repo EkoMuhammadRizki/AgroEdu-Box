@@ -82,24 +82,24 @@ Sistem ini dirancang khusus untuk siswa sekolah dan guru agar proses praktikum p
   - Sensor Suhu Udara (DHT22 / DHT11)
   - Sensor Kelembapan Tanah (Capacitive Soil Moisture v1.2 / Resistive Analog A0)
   - Output Alarm Aktuator (Buzzer & LCD 16x2 I2C)
-- **Protokol Komunikasi**: MQTT (ESP32 ke broker) diteruskan sebagai HTTP POST JSON ke API
+- **Protokol Komunikasi**: HTTPS POST (JSON) langsung dari ESP32 ke API, tanpa perantara
 
 ---
 
 ## 📡 Integrasi IoT & Telemetri
 
 Satu ESP32 memantau empat pot (4 sensor tanah + 1 DHT22 + LCD + buzzer), lalu
-mengirim datanya lewat MQTT. Broker EMQX meneruskan sendiri tiap pesan ke
-website, jadi tidak perlu ada laptop yang menyala terus.
+mengirim datanya langsung ke website lewat HTTPS. Tidak ada broker, tidak ada
+layanan pihak ketiga, dan tidak ada akun tambahan yang harus dipegang sekolah.
 
 ```
-ESP32  --MQTT-->  Broker EMQX  --webhook-->  /api/iot/ingest  -->  Supabase
-                                                                      |
-                            Lab IoT siswa & portal guru  <------------+
+ESP32  --HTTPS-->  /api/iot/ingest  -->  Supabase
+                                            |
+                  Lab IoT siswa & portal guru  <--+
 ```
 
-Panduan lengkap (rangkaian, pengaturan EMQX, kalibrasi, dan cara mengatasi
-masalah) ada di **[firmware/README.md](firmware/README.md)**.
+Panduan lengkap (rangkaian, kalibrasi, token, dan cara mengatasi masalah) ada
+di **[firmware/README.md](firmware/README.md)**.
 
 - **Endpoint**: `POST /api/iot/ingest`
 - **Header**: `x-iot-token: <IOT_INGEST_TOKEN>` (atau `Authorization: Bearer`)
@@ -111,7 +111,7 @@ masalah) ada di **[firmware/README.md](firmware/README.md)**.
 { "suhu": 28.4, "pot": { "a": 45.2, "b": 62.0, "c": 21.5, "d": 70.1 } }
 ```
 
-Pesan Last Will saat alat mati mendadak:
+Menidurkan semua pot (dipakai saat pengujian):
 
 ```json
 { "status": "mati" }

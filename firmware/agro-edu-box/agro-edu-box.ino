@@ -7,21 +7,22 @@
     - 1 LCD 16x2 yang menampilkan pot secara bergantian
     - 1 buzzer + 2 LED sebagai penanda kondisi
 
-  Data dikirim lewat MQTT ke broker, lalu broker meneruskannya ke website
-  Agro-Edu Box. Lihat firmware/README.md untuk langkah pengaturannya.
+  Data dikirim langsung ke website Agro-Edu Box lewat HTTPS, tanpa perantara.
+  Tidak ada layanan pihak ketiga, tidak ada akun tambahan yang harus diurus
+  sekolah. Lihat firmware/README.md untuk langkah pengaturannya.
 
   Pustaka yang perlu dipasang lewat Library Manager Arduino IDE:
-    - PubSubClient (Nick O'Leary)
     - DHT sensor library (Adafruit) + Adafruit Unified Sensor
     - DIYables_LCD_I2C
+  (WiFi dan HTTPClient sudah bawaan board ESP32.)
 
   Salin secrets.h.example menjadi secrets.h lalu isi. File secrets.h sengaja
-  tidak ikut masuk ke GitHub karena berisi kata sandi.
+  tidak ikut masuk ke GitHub karena berisi kata sandi dan token.
 */
 
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
-#include <PubSubClient.h>
+#include <HTTPClient.h>
 #include <Wire.h>
 #include <DIYables_LCD_I2C.h>
 #include <DHT.h>
@@ -54,26 +55,27 @@ const int TANAH_BASAH_DI_ATAS   = 80;   // > 80%  : terlalu basah
 const float SUHU_PANAS_DI_ATAS  = 35.0; // alarm suhu
 
 // ─── Jadwal (milidetik) ─────────────────────────────────────────────────
-const unsigned long JEDA_BACA     = 5000;   // baca sensor tiap 5 detik
-const unsigned long JEDA_KIRIM    = 10000;  // kirim ke broker tiap 10 detik
-const unsigned long JEDA_LCD      = 2500;   // ganti pot di layar tiap 2,5 detik
-const unsigned long JEDA_ALARM    = 10000;  // bunyi pengingat tiap 10 detik
-const unsigned long LAMA_BIP      = 180;    // panjang satu bunyi
-const unsigned long JEDA_SAMBUNG  = 5000;   // coba sambung ulang tiap 5 detik
+const unsigned long JEDA_BACA    = 5000;   // baca sensor tiap 5 detik
+const unsigned long JEDA_KIRIM   = 10000;  // kirim ke website tiap 10 detik
+const unsigned long JEDA_LCD     = 2500;   // ganti pot di layar tiap 2,5 detik
+const unsigned long JEDA_ALARM   = 10000;  // bunyi pengingat tiap 10 detik
+const unsigned long LAMA_BIP     = 180;    // panjang satu bunyi
+const unsigned long JEDA_WIFI    = 5000;   // coba sambung ulang WiFi tiap 5 detik
+const unsigned long BATAS_KIRIM  = 10000;  // berhenti menunggu balasan setelah ini
 
 // ─── Objek ──────────────────────────────────────────────────────────────
 DIYables_LCD_I2C lcd(0x27, 16, 2);
 DHT dht(PIN_DHT, DHTTYPE);
 WiFiClientSecure net;
-PubSubClient mqtt(net);
 
 // ─── Keadaan ────────────────────────────────────────────────────────────
 float tanahPersen[4] = { 0, 0, 0, 0 };
 float suhuC = 0.0;
 bool  suhuTerbaca = false;
 bool  adaAlarm = false;
+bool  kirimBerhasil = false;
 
-unsigned long tBaca = 0, tKirim = 0, tLcd = 0, tAlarm = 0, tSambung = 0;
+unsigned long tBaca = 0, tKirim = 0, tLcd = 0, tAlarm = 0, tWifi = 0;
 int potTampil = 0;
 int bipTersisa = 0;
 bool bipMenyala = false;
@@ -148,7 +150,9 @@ void tampilkanPot(int i) {
   lcd.setCursor(0, 1);
   lcd.print("                ");
   lcd.setCursor(0, 1);
-  lcd.print(mqtt.connected() ? statusTanah(tanahPersen[i]) : "Tanpa koneksi");
+  if (WiFi.status() != WL_CONNECTED) lcd.print("WiFi putus");
+  else if (!kirimBerhasil)           lcd.print("Gagal kirim");
+  else                               lcd.print(statusTanah(tanahPersen[i]));
 }
 
 // ─── Buzzer & LED ───────────────────────────────────────────────────────
@@ -192,32 +196,11 @@ void sambungWifi() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
 
-void sambungMqtt() {
-  if (mqtt.connected() || WiFi.status() != WL_CONNECTED) return;
-
-  char clientId[40];
-  snprintf(clientId, sizeof(clientId), "agro-kebun-%llX", ESP.getEfuseMac());
-
-  Serial.print("Menyambung broker MQTT... ");
-  // Pesan Last Will: kalau alat mati mendadak (kabel dicabut, listrik padam),
-  // broker sendiri yang mengirim pesan ini, dan keempat pot langsung tidur di
-  // dashboard tanpa menunggu batas waktu dua menit.
-  bool ok = mqtt.connect(
-    clientId, MQTT_USERNAME, MQTT_PASSWORD,
-    MQTT_TOPIC_STATUS, 1, true, "{\"status\":\"mati\"}"
-  );
-
-  if (ok) {
-    Serial.println("berhasil.");
-    mqtt.publish(MQTT_TOPIC_STATUS, "{\"status\":\"hidup\"}", true);
-  } else {
-    Serial.print("gagal, kode ");
-    Serial.println(mqtt.state());
-  }
-}
-
 void kirimData() {
-  if (!mqtt.connected()) return;
+  if (WiFi.status() != WL_CONNECTED) {
+    kirimBerhasil = false;
+    return;
+  }
 
   char suhuTeks[12];
   if (suhuTerbaca) snprintf(suhuTeks, sizeof(suhuTeks), "%.1f", suhuC);
@@ -228,12 +211,32 @@ void kirimData() {
     "{\"suhu\":%s,\"pot\":{\"a\":%.1f,\"b\":%.1f,\"c\":%.1f,\"d\":%.1f}}",
     suhuTeks, tanahPersen[0], tanahPersen[1], tanahPersen[2], tanahPersen[3]);
 
-  if (mqtt.publish(MQTT_TOPIC_DATA, pesan, true)) {
+  HTTPClient http;
+  if (!http.begin(net, INGEST_URL)) {
+    Serial.println("Alamat website tidak bisa dibuka. Periksa INGEST_URL.");
+    kirimBerhasil = false;
+    return;
+  }
+  http.setTimeout(BATAS_KIRIM);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("x-iot-token", INGEST_TOKEN);
+
+  int kode = http.POST((uint8_t*)pesan, strlen(pesan));
+  kirimBerhasil = (kode == 200);
+
+  if (kirimBerhasil) {
     Serial.print("Terkirim: ");
     Serial.println(pesan);
   } else {
-    Serial.println("Gagal mengirim (pesan terlalu panjang atau koneksi putus).");
+    Serial.print("Gagal kirim, kode ");
+    Serial.print(kode);
+    if (kode == 401)      Serial.println(" (token salah, periksa INGEST_TOKEN)");
+    else if (kode == 503) Serial.println(" (IOT_INGEST_TOKEN belum diisi di Vercel)");
+    else if (kode == 400) Serial.println(" (angka sensor di luar batas wajar)");
+    else if (kode < 0)    Serial.println(" (tidak sampai ke website, periksa WiFi)");
+    else                  Serial.println();
   }
+  http.end();
 }
 
 // ─── Setup ──────────────────────────────────────────────────────────────
@@ -263,12 +266,10 @@ void setup() {
 
   sambungWifi();
 
-  // Sambungan tanpa pemeriksaan sertifikat broker. Isi paketnya hanya angka
-  // kelembapan dan suhu, bukan data pribadi siswa. Kalau sekolah memakai WiFi
-  // umum dan kamu ingin lebih aman, ganti dengan net.setCACert(...).
+  // Sambungan tanpa pemeriksaan sertifikat website. Isi paketnya hanya angka
+  // kelembapan dan suhu, bukan data pribadi siswa. Tokennya tetap terlindungi
+  // karena pengirimannya tetap terenkripsi.
   net.setInsecure();
-  mqtt.setServer(MQTT_HOST, MQTT_PORT);
-  mqtt.setBufferSize(512);
 
   bacaSemuaSensor();
   lcd.clear();
@@ -278,12 +279,10 @@ void setup() {
 void loop() {
   unsigned long sekarang = millis();
 
-  if (sekarang - tSambung >= JEDA_SAMBUNG) {
-    tSambung = sekarang;
+  if (sekarang - tWifi >= JEDA_WIFI) {
+    tWifi = sekarang;
     sambungWifi();
-    sambungMqtt();
   }
-  mqtt.loop();
 
   if (sekarang - tBaca >= JEDA_BACA) {
     tBaca = sekarang;
