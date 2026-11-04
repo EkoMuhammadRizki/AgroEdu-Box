@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Home, BookOpen, Cpu, ClipboardCheck, HelpCircle, User,
+  Home, BookOpen, Cpu, ClipboardCheck, HelpCircle, User, FileText,
   LayoutDashboard, Users, Database, BookMarked, ClipboardList, BarChart3, Settings,
   LogOut, Star
 } from "lucide-react";
@@ -21,6 +21,7 @@ const SISWA_NAV: NavItem[] = [
   { href: "/materi", label: "Materi Lab", shortLabel: "Materi", icon: BookOpen },
   { href: "/lab-iot", label: "Lab IoT", shortLabel: "Lab IoT", icon: Cpu },
   { href: "/misi", label: "Kartu Misi", shortLabel: "Misi", icon: ClipboardCheck },
+  { href: "/lkpd", label: "Lembar Kerja", shortLabel: "LKPD", icon: FileText },
   { href: "/kuis", label: "Kuis Pintar", shortLabel: "Kuis", icon: HelpCircle },
   { href: "/profil", label: "Profil & Piala", shortLabel: "Profil", icon: User },
 ];
@@ -31,6 +32,7 @@ const GURU_NAV: NavItem[] = [
   { href: "/guru/iot", label: "Data & Sensor", shortLabel: "IoT", icon: Database },
   { href: "/guru/materi", label: "Materi Modul", shortLabel: "Materi", icon: BookMarked },
   { href: "/guru/tugas", label: "Tugas & Misi", shortLabel: "Tugas", icon: ClipboardList },
+  { href: "/guru/lkpd", label: "Lembar Kerja", shortLabel: "LKPD", icon: FileText },
   { href: "/guru/laporan", label: "Laporan & Nilai", shortLabel: "Laporan", icon: BarChart3 },
   { href: "/guru/pengaturan", label: "Pengaturan IoT", shortLabel: "Setting", icon: Settings },
 ];
