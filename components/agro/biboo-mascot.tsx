@@ -37,7 +37,7 @@ export function BibooMascot({
   // Sedih dan kedinginan: daun layu terkulai. Tidur: daun miring sedikit.
   const wilted = mood === "sad" || mood === "cold";
   const leafTilt = wilted ? 72 : mood === "sleepy" ? 28 : 0;
-  const leafFill = `url(#${uid}-${wilted ? "bibooLeafWilt" : "bibooLeaf"})`;
+  const leafFill = `url(#${uid}-${wilted ? "situnasLeafWilt" : "situnasLeaf"})`;
   const leafStroke = wilted ? "#9A8A3A" : "#3F9B2E";
   const cheekFill = `url(#${uid}-${mood === "cold" ? "blushCold" : "blush"})`;
   const bodyTint = mood === "hot" ? "#FF6B4A" : mood === "cold" ? "#6EC6F5" : null;
@@ -52,8 +52,8 @@ export function BibooMascot({
         </div>
       )}
 
-      {/* SVG Cartoon BiBoo */}
-      <div className={`${sizeMap[size]} ${animated ? "animate-biboo" : ""} relative flex items-center justify-center`}>
+      {/* SVG Cartoon Situnas */}
+      <div className={`${sizeMap[size]} ${animated ? "animate-situnas" : ""} relative flex items-center justify-center`}>
         <svg
           viewBox="0 0 200 200"
           className="w-full h-full drop-shadow-md overflow-visible"
@@ -61,20 +61,20 @@ export function BibooMascot({
         >
           <defs>
             {/* Body Gradient */}
-            <linearGradient id={`${uid}-bibooBody`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id={`${uid}-situnasBody`} x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#8FD16A" />
               <stop offset="50%" stopColor="#6CC04A" />
               <stop offset="100%" stopColor="#3F9B2E" />
             </linearGradient>
 
             {/* Leaf Gradient */}
-            <linearGradient id={`${uid}-bibooLeaf`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id={`${uid}-situnasLeaf`} x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#A8E27A" />
               <stop offset="100%" stopColor="#55B033" />
             </linearGradient>
 
             {/* Daun layu */}
-            <linearGradient id={`${uid}-bibooLeafWilt`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id={`${uid}-situnasLeafWilt`} x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#D9D07A" />
               <stop offset="100%" stopColor="#B59A3A" />
             </linearGradient>
@@ -161,7 +161,7 @@ export function BibooMascot({
                C 168 165, 140 182, 100 182
                C 60 182, 32 165, 32 125
                C 32 85, 55 60, 100 60 Z"
-            fill={`url(#${uid}-bibooBody)`}
+            fill={`url(#${uid}-situnasBody)`}
             stroke="#FFFFFF"
             strokeWidth="3.5"
           />
