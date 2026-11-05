@@ -1,6 +1,7 @@
 # Alat IoT Agro-Edu Box
 
-Satu ESP32 memantau empat pot, lalu mengirim angkanya langsung ke website.
+Satu ESP32 dengan satu sensor tanah. Sensor dipindahkan dengan tangan dari pot ke
+pot, lalu angkanya dikirim langsung ke website.
 
 ```
 ESP32  ──HTTPS──►  /api/iot/ingest  ──►  Supabase
@@ -8,49 +9,31 @@ ESP32  ──HTTPS──►  /api/iot/ingest  ──►  Supabase
                  Lab IoT siswa & portal guru  ◄──┘
 ```
 
-Tidak ada perantara, tidak ada layanan pihak ketiga, dan tidak ada akun
-tambahan yang harus dipegang sekolah. Yang dibutuhkan hanya ESP32, WiFi
-sekolah, dan website yang sudah berjalan.
+Alat tidak tahu sensornya sedang di pot mana, jadi angka yang sama dikirim ke
+keempat pot. Siswa membuka tab pot tempat sensor sedang ditancapkan.
 
 ## 1. Rangkaian
 
-| Komponen | Pin ESP32 | Catatan |
+| Komponen | Pin ESP32 |
+|---|---|
+| Sensor tanah (A0) | GPIO 34 |
+| DHT22 (suhu udara) | GPIO 14 |
+| Buzzer | GPIO 15 |
+| LED 1 (kering / terlalu basah) | GPIO 26 |
+| LED 2 (normal) | GPIO 27 |
+| LCD I2C SDA / SCL | GPIO 21 / 22, alamat 0x27 |
+
+## 2. Batas kondisi pada alat
+
+| Kelembapan tanah | Tulisan LCD | Alat |
 |---|---|---|
-| Sensor tanah Pot A | GPIO 34 | pin A0 sensor |
-| Sensor tanah Pot B | GPIO 35 | |
-| Sensor tanah Pot C | GPIO 32 | |
-| Sensor tanah Pot D | GPIO 33 | |
-| DHT22 (suhu udara) | GPIO 14 | satu saja, dipakai keempat pot |
-| Buzzer | GPIO 15 | |
-| LED merah (bahaya) | GPIO 26 | lewat resistor 220Ω |
-| LED hijau (aman) | GPIO 27 | lewat resistor 220Ω |
-| LCD I2C SDA / SCL | GPIO 21 / 22 | alamat 0x27 |
+| di bawah 50% | Tanah Kering | LED 1 dan buzzer |
+| 50–79% | Normal/Nyaman | LED 2 |
+| 80% ke atas | Terlalu Basah | LED 1 dan buzzer |
 
-Keempat pin sensor tanah **harus** GPIO 32–39. Pin ADC yang lain (GPIO 0–27)
-tidak bisa membaca apa pun saat WiFi menyala di ESP32.
-
-Suhu udara hanya diukur satu kali, jadi keempat pot menampilkan angka suhu yang
-sama. Itu wajar karena keempat pot berada di ruangan yang sama.
-
-## 2. Batas kondisi
-
-Angka ini sama persis dengan Kartu Investigasi, soal kuis nomor 7, dan maskot
-Si Tunas di Lab IoT. Kalau diubah, ubah juga `lib/pot-mood.ts` di website.
-
-| Kelembapan tanah | Kondisi | Alat |
-|---|---|---|
-| di bawah 30% | Kering | LED merah, buzzer berbunyi |
-| 30–49% | Agak kering | LED merah mati, belum alarm |
-| 50–80% | Ideal | LED hijau |
-| di atas 80% | Terlalu basah | LED merah, buzzer berbunyi |
-
-Suhu di atas 35°C juga membunyikan buzzer.
-
-Buzzer berbunyi **dua kali singkat setiap 10 detik**, bukan terus-menerus.
-Dalam Kartu Investigasi, Pot A dan Pot C memang sengaja dibuat kering sepanjang
-pelajaran, jadi bunyi tanpa henti akan mengganggu satu kelas. LED merah tetap
-menyala supaya kondisinya tetap terlihat, dan buzzer tetap berhenti begitu pot
-disiram, seperti yang diminta di Kartu Investigasi.
+Suhu di atas 35°C juga membunyikan buzzer. Batas kering pada Kartu Investigasi,
+soal kuis nomor 7, dan maskot di website adalah 30%. Untuk menyamakannya, ubah
+`ALARM_KERING_MAKS` di firmware.
 
 ## 3. Menyiapkan database
 
@@ -100,10 +83,10 @@ tersebar, buat yang baru dengan perintah di atas dan ganti di ketiga tempat.
 5. Buka Serial Monitor di 115200 baud. Kalau berhasil, tiap 10 detik muncul:
 
    ```
-   Terkirim: {"suhu":28.4,"pot":{"a":45.2,"b":62.0,"c":21.5,"d":70.1}}
+   Terkirim: {"suhu":28.4,"pot":{"a":45,"b":45,"c":45,"d":45}}
    ```
 
-6. Buka `/lab-iot` di website. Keempat pot harus bangun dengan angka yang sama.
+6. Buka `/lab-iot` di website. Keempat tab pot menampilkan angka yang sama.
 
 ## 6. Menguji tanpa alat
 
@@ -138,9 +121,8 @@ Pesan di Serial Monitor sudah menjelaskan sendiri sebagian besar masalah.
 | `Gagal kirim, kode 503` | `IOT_INGEST_TOKEN` belum diisi di Vercel, atau belum redeploy |
 | `Gagal kirim, kode 400` | Angka sensor di luar batas wajar; cek kalibrasi |
 | `Gagal kirim, kode -1` | Tidak sampai ke website; cek WiFi sekolah |
-| LCD: `WiFi putus` | Nama atau kata sandi WiFi salah, atau jaringannya 5 GHz |
-| LCD: `Gagal kirim` | WiFi tersambung tapi website menolak; lihat Serial Monitor |
-| Suhu `--C` di LCD | DHT22 lepas atau rusak. Angka suhu sengaja tidak dikirim, bukan dikirim sebagai 0 |
+| LCD: `Mode Offline` | Nama atau kata sandi WiFi salah, atau jaringannya 5 GHz. Alat terus mencoba menyambung |
+| Suhu `0.0C` di LCD | DHT22 lepas atau rusak. Website tidak menerima angka 0 itu, suhunya dikirim kosong |
 | Semua pot 0% atau 100% | Kalibrasi salah. Lihat angka ADC di Serial Monitor, lalu sesuaikan `BATAS_KERING` dan `BATAS_BASAH` |
 | LCD kosong | Alamat I2C bukan 0x27. Coba 0x3F |
 | Si Tunas tidur padahal alat menyala | Data tidak sampai. Lihat Serial Monitor |
